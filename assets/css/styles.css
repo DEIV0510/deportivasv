@@ -50,7 +50,7 @@ html{scroll-behavior:smooth;scroll-padding-top:76px}
 .sec-light :where(a,button):focus-visible{outline-color:#000}
 
 /* ---------- Tipografía display ---------- */
-h1,h2,.brand-mark,.ld-mark,.mode-n,.cat-mono,.feat-bd h3,.cta h2{
+h1,h2,.mode-n,.feat-bd h3,.cta h2{
   font-family:Anton,"Arial Black",Impact,sans-serif;
   font-weight:400;
   letter-spacing:.005em;
@@ -104,12 +104,9 @@ h3{font-size:16px;font-weight:700;letter-spacing:.01em;line-height:1.25}
 .hdr-in{display:flex;align-items:center;gap:var(--s3);min-height:68px}
 
 .brand{display:flex;align-items:center;gap:10px;flex:none}
-.brand-mark{
-  font-size:26px;line-height:1;color:var(--white);
-  border:2px solid var(--white);padding:5px 7px 3px;
-}
+.brand-mark{height:28px;width:auto;flex:none}
 .brand-txt{display:flex;flex-direction:column;gap:2px}
-.brand-txt b{font-size:12px;font-weight:700;letter-spacing:.16em;line-height:1}
+.brand-txt b{font-size:11px;font-weight:700;letter-spacing:.19em;line-height:1}
 .brand-txt i{font-size:8.5px;font-style:normal;letter-spacing:.24em;color:var(--muted);line-height:1}
 
 .nav{margin-left:auto;display:flex;align-items:center;gap:26px}
@@ -237,11 +234,12 @@ h3{font-size:16px;font-weight:700;letter-spacing:.01em;line-height:1.25}
 .cat-type{display:grid;place-items:center;background:var(--surface)}
 .cat-type::after{background:linear-gradient(to top,rgba(0,0,0,.9),transparent 60%)}
 .cat-mono{
-  font-size:clamp(52px,11vw,84px);line-height:1;color:transparent;
-  -webkit-text-stroke:1.5px rgba(255,255,255,.24);
-  transition:-webkit-text-stroke-color .3s var(--ease);
+  display:block;width:clamp(78px,20vw,124px);aspect-ratio:200/83;
+  background:url(../img/logo-sv-mark-200.png) center/contain no-repeat;
+  opacity:.2;transition:opacity .3s var(--ease),transform .3s var(--ease);
+  text-indent:-9999px;overflow:hidden;
 }
-.cat-type:hover .cat-mono{-webkit-text-stroke-color:rgba(255,255,255,.55)}
+.cat-type:hover .cat-mono{opacity:.5;transform:scale(1.04)}
 
 /* ---------- Filtros ---------- */
 .chips{display:flex;flex-wrap:wrap;gap:8px}

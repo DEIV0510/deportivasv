@@ -26,7 +26,7 @@ Abre http://localhost:5260
 index.html                 Toda la página (contenido en HTML, sin render por JS)
 assets/css/styles.css      Estilos (el CSS crítico va en línea dentro de index.html)
 assets/js/app.js           Loader, menú móvil, filtros, reveal, scrollspy
-assets/img/                Imágenes optimizadas en AVIF + WebP (340w y 600w)
+assets/img/                Imágenes optimizadas en AVIF + WebP (340w y 600w) y el logo en PNG
 assets/video/              3 clips reales de la tienda (preload="none")
 build-images.js            Regenera assets/img desde la carpeta de fotos originales
 serve.js                   Servidor estático de desarrollo
@@ -38,8 +38,8 @@ Medido en local sobre esta versión:
 
 | Métrica                    | Valor    |
 |----------------------------|----------|
-| Peticiones iniciales       | 12       |
-| Peso inicial transferido   | ~185 KB  |
+| Peticiones iniciales       | 15       |
+| Peso inicial transferido   | ~136 KB  |
 | First Contentful Paint     | ~76 ms   |
 | Bytes de video en la carga | 0        |
 
@@ -50,6 +50,21 @@ Cómo se consigue:
 - Videos con `preload="none"` y póster de marca: no descargan un solo byte hasta que se pulsa play.
 - CSS crítico en línea; `app.js` con `defer` y sin dependencias.
 - Pantalla de carga con mínimo 0,5 s y tope duro de 1,1 s.
+
+## Logo
+
+El logo oficial vive en `assets/img/` en dos piezas, generadas desde el PNG original
+(marco negro recortado y trazo convertido a blanco con transparencia real):
+
+| Archivo | Uso |
+|---|---|
+| `logo-sv-lockup-560.png` / `-300.png` | Pantalla de carga (lockup completo) |
+| `logo-sv-mark-96.png` | Monograma del header y del footer |
+| `logo-sv-mark-200.png` | Marca de agua de las categorías sin foto |
+| `favicon-sv.png` | Favicon y apple-touch-icon |
+
+El lockup del loader lleva `preload` + `fetchpriority="high"` para que aparezca de inmediato.
+Si cambias el logo, regenera estas piezas con `node build-logo.js`.
 
 ## Cosas que hay que editar cuando cambie el negocio
 

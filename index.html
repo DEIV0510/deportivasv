@@ -25,12 +25,13 @@
 <meta name="twitter:description" content="Camisetas actuales y retro, shorts, hoodies y lifestyle. Pide por WhatsApp.">
 <meta name="twitter:image" content="assets/img/og-tiendadeportivasv.jpg">
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Ctext x='32' y='45' font-family='Arial Black,Arial,sans-serif' font-size='34' font-weight='900' fill='%23fff' text-anchor='middle'%3ESV%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="assets/img/og-tiendadeportivasv.jpg">
+<link rel="icon" type="image/png" href="assets/img/favicon-sv.png">
+<link rel="apple-touch-icon" href="assets/img/favicon-sv.png">
 
 <!-- Fuentes: preconnect + swap para no bloquear el primer render -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="assets/img/logo-sv-lockup-560.png" fetchpriority="high">
 <link rel="preload" as="image" href="assets/img/chelsea-retro-600.avif" imagesrcset="assets/img/chelsea-retro-340.avif 340w, assets/img/chelsea-retro-600.avif 600w" imagesizes="(min-width:900px) 460px, 88vw" type="image/avif" fetchpriority="high">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -43,9 +44,9 @@
   img{max-width:100%;display:block}
   #loader{position:fixed;inset:0;z-index:9999;background:#000;display:grid;place-items:center;transition:opacity .35s ease,visibility .35s ease}
   #loader.is-done{opacity:0;visibility:hidden;pointer-events:none}
-  .ld-mark{font-family:Anton,"Arial Black",Impact,sans-serif;font-size:clamp(48px,14vw,86px);letter-spacing:.02em;line-height:1;color:#fff}
-  .ld-sub{margin-top:10px;font-size:11px;letter-spacing:.42em;color:#8b8b91;text-align:center;text-indent:.42em}
-  .ld-bar{margin:22px auto 0;width:120px;height:2px;background:rgba(255,255,255,.16);overflow:hidden}
+  .ld-logo{width:min(280px,64vw);height:auto;animation:ldIn .45s cubic-bezier(.4,0,.2,1) both}
+  @keyframes ldIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+  .ld-bar{margin:26px auto 0;width:120px;height:2px;background:rgba(255,255,255,.16);overflow:hidden}
   .ld-bar i{display:block;height:100%;width:40%;background:#fff;animation:ldrun .7s cubic-bezier(.4,0,.2,1) infinite}
   @keyframes ldrun{0%{transform:translateX(-110%)}100%{transform:translateX(320%)}}
   @media (prefers-reduced-motion:reduce){.ld-bar i{animation:none;width:100%}}
@@ -71,8 +72,7 @@
 <!-- ===== LOADER (0.5s – 1.1s máx.) ===== -->
 <div id="loader" role="status" aria-label="Cargando TiendaDeportivaSV">
   <div>
-    <div class="ld-mark">SV</div>
-    <div class="ld-sub">TIENDA DEPORTIVA</div>
+    <img class="ld-logo" src="assets/img/logo-sv-lockup-560.png" width="560" height="211" alt="TiendaDeportivaSV" fetchpriority="high" decoding="sync">
     <div class="ld-bar"><i></i></div>
   </div>
 </div>
@@ -83,8 +83,8 @@
 <header class="hdr" id="hdr">
   <div class="wrap hdr-in">
     <a class="brand" href="#inicio" aria-label="TiendaDeportivaSV, inicio">
-      <span class="brand-mark">SV</span>
-      <span class="brand-txt"><b>TIENDADEPORTIVA</b><i>VILLAVICENCIO · CO</i></span>
+      <img class="brand-mark" src="assets/img/logo-sv-mark-96.png" width="96" height="40" alt="" aria-hidden="true" decoding="async">
+      <span class="brand-txt"><b>TIENDA DEPORTIVA</b><i>VILLAVICENCIO · CO</i></span>
     </a>
 
     <nav class="nav" id="nav" aria-label="Navegación principal">
