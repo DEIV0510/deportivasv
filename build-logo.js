@@ -12,17 +12,19 @@ const FOTO_HERO = path.join(__dirname, 'assets', 'brand', 'foto-og.png'); // fot
 const OUT = path.join(__dirname, 'assets', 'img');
 
 /* El logo es blanco puro sobre negro puro: usamos su luminancia como canal alfa
-   para obtener un PNG blanco con transparencia real. */
-async function aBlancoConAlfa(buf) {
+   para obtener un PNG con transparencia real, en blanco (255) o en negro (0). */
+async function conAlfa(buf, tono) {
   const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const { width: w, height: h } = info;
   const out = Buffer.alloc(w * h * 4);
   for (let i = 0; i < w * h; i++) {
     const l = Math.round(0.2126 * data[i * 4] + 0.7152 * data[i * 4 + 1] + 0.0722 * data[i * 4 + 2]);
-    out[i * 4] = 255; out[i * 4 + 1] = 255; out[i * 4 + 2] = 255; out[i * 4 + 3] = l;
+    out[i * 4] = tono; out[i * 4 + 1] = tono; out[i * 4 + 2] = tono; out[i * 4 + 3] = l;
   }
   return sharp(out, { raw: { width: w, height: h, channels: 4 } });
 }
+const aBlancoConAlfa = (buf) => conAlfa(buf, 255); // sobre fondos oscuros
+const aNegroConAlfa  = (buf) => conAlfa(buf, 0);   // sobre la barra y el loader blancos
 
 /* Devuelve el recuadro ocupado por píxeles claros dentro de un buffer. */
 async function caja(buf) {
@@ -66,11 +68,18 @@ async function caja(buf) {
     .extract({ left: ca.x0, top: 0, width: ca.x1 - ca.x0 + 1, height: corte })
     .toBuffer();
 
-  // 3. Exporta lockup y monograma (PNG con paleta: más liviano que WebP para trazo plano)
-  for (const [nombre, buf, anchos] of [['logo-sv-lockup', lockup, [560, 300]], ['logo-sv-mark', marca, [200, 96]]]) {
+  // 3. Exporta lockup y monograma en blanco y en negro
+  //    (PNG con paleta: más liviano que WebP para un trazo plano)
+  const piezas = [
+    ['logo-sv-lockup',      lockup, [560, 300], aBlancoConAlfa],
+    ['logo-sv-mark',        marca,  [200, 96],  aBlancoConAlfa],
+    ['logo-sv-lockup-dark', lockup, [560, 300], aNegroConAlfa],
+    ['logo-sv-mark-dark',   marca,  [200, 96],  aNegroConAlfa]
+  ];
+  for (const [nombre, buf, anchos, tinte] of piezas) {
     for (const w of anchos) {
       const f = path.join(OUT, `${nombre}-${w}.png`);
-      await (await aBlancoConAlfa(buf)).resize({ width: w })
+      await (await tinte(buf)).resize({ width: w })
         .png({ compressionLevel: 9, palette: true, colors: 64 }).toFile(f);
       console.log(path.basename(f), fs.statSync(f).size + 'B');
     }
