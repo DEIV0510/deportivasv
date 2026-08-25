@@ -12,6 +12,10 @@ lifestyle. Villavicencio, Colombia. Toda la conversión ocurre por **WhatsApp**.
 HTML + CSS + JavaScript vanilla. Sin frameworks, sin librerías externas.
 Solo se cargan desde fuera las fuentes de Google (Archivo Black + Inter) con `display=swap`.
 
+**Paleta:** solo negro, blanco y grises. El único color de la interfaz es el verde de los
+botones de WhatsApp, porque identifica el canal de venta. Las fotos de las camisetas y las
+franjas de color de cada equipo son contenido, no decoración.
+
 ## Ejecutar en local
 
 ```bash
@@ -39,8 +43,9 @@ bajo-pedido.html            | Generadas por build-pages.js — no las edites a m
 tallas.html                 |
 rastrear.html              /
 assets/css/styles.css      Estilos (el CSS crítico va en línea dentro de cada página)
-assets/js/app.js           Loader, menú, buscador, filtros, grillas, reveal
-assets/js/equipos.js       Lista de equipos disponibles bajo pedido
+assets/js/app.js           Loader, menú, buscador, filtros, paneles de equipo, reveal
+assets/js/equipos.js       Lista de equipos (12 selecciones + 20 clubes)
+assets/js/productos.js     Camisetas con foto, enlazadas a su equipo
 assets/img/                Imágenes en AVIF + WebP (340w y 600w) y el logo en PNG
 assets/video/              3 clips reales de la tienda (preload="none")
 assets/brand/              Logo original y foto base, para regenerar los assets
@@ -108,7 +113,7 @@ en `index.html` y en la plantilla `pcard()` de `build-pages.js`.
 
 ### 2. Destacar un producto
 
-El badge amarillo **TOP** se controla con `top: true` en `build-pages.js` (objeto `P`).
+El badge **TOP** se controla con `top: true` en `build-pages.js` (objeto `P`).
 En `index.html` es el `<span class="badge badge-top">` de cada tarjeta.
 
 ### 3. Reseñas
@@ -124,10 +129,35 @@ var REVIEWS = [
 
 Las tarjetas se generan solas y el bloque de invitación desaparece.
 
-### 4. Equipos de "bajo pedido"
+### 4. Equipos de "bajo pedido" y sus camisetas
 
-Edita `assets/js/equipos.js`. Cada equipo es `{ n: nombre, s: iniciales, c: [color1, color2, color3] }`.
-Los colores forman la franja superior de la tarjeta. **No se usan escudos ni logos de terceros.**
+La página no muestra todas las camisetas de golpe: primero se escoge equipo y **su panel se
+despliega debajo de la fila**, con las camisetas publicadas de ese equipo y un campo para pedir
+otra temporada.
+
+**`assets/js/equipos.js`** — la parrilla de equipos (12 selecciones + 20 clubes):
+
+```js
+{ n: 'Barcelona', s: 'BAR', c: ['#A50044', '#004D98', '#EDBB00'] }
+```
+
+`c` son los tres colores de la franja superior de la tarjeta. **No se usan escudos ni logos de
+terceros.** Añade `id: 'barcelona'` solo cuando ese equipo ya tenga camisetas con foto.
+
+**`assets/js/productos.js`** — las camisetas que se despliegan dentro del panel:
+
+```js
+{ eq: 'barcelona', tt: 'Barcelona 1998/99', meta: 'Club · Retro', estado: 'ok',
+  img: 'barcelona-9899', w: 600, h: 860, alt: 'descripción de la foto' }
+```
+
+- `eq` debe coincidir con el `id` del equipo en `equipos.js`.
+- `estado`: `'ok'` Disponible · `'pedido'` Bajo pedido · `'ask'` Consultar disponibilidad.
+- `img` es el nombre base en `assets/img/`; deben existir las variantes `-340` y `-600`
+  en `.avif` y `.webp` (las genera `build-images.js`).
+
+Un equipo sin camisetas publicadas muestra el mensaje honesto de "todavía no tenemos fotos"
+más el campo de temporada. No hay que tocar nada para eso.
 
 ### 5. Añadir productos al catálogo
 

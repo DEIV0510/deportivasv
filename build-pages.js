@@ -177,6 +177,7 @@ ${main}
 ${PIE}
 
 <script src="assets/js/equipos.js" defer></script>
+<script src="assets/js/productos.js" defer></script>
 <script src="assets/js/app.js" defer></script>
 </body>
 </html>
@@ -274,7 +275,8 @@ const bajoPedido = `<section class="page-head">
   <div class="wrap">
     <header class="sec-hd reveal">
       <p class="kicker">ESCOGE UN EQUIPO</p>
-      <h2>SELECCIONES</h2>
+      <h2>SELECCIONES RETRO</h2>
+      <p class="lead" style="margin-top:12px;max-width:56ch">Toca un equipo y se despliegan sus camisetas.</p>
     </header>
     <div class="tgrid" data-equipos="selecciones"></div>
   </div>
@@ -284,19 +286,10 @@ const bajoPedido = `<section class="page-head">
   <div class="wrap">
     <header class="sec-hd reveal">
       <p class="kicker">ESCOGE UN EQUIPO</p>
-      <h2>CLUBES</h2>
+      <h2>CLUBES RETRO</h2>
+      <p class="lead" style="margin-top:12px;max-width:56ch">Toca un equipo y se despliegan sus camisetas.</p>
     </header>
     <div class="tgrid" data-equipos="clubes"></div>
-  </div>
-</section>
-
-<section class="sec">
-  <div class="wrap">
-    <header class="sec-hd reveal">
-      <p class="kicker">ESCOGE UN EQUIPO</p>
-      <h2>FÚTBOL COLOMBIANO</h2>
-    </header>
-    <div class="tgrid" data-equipos="colombia"></div>
   </div>
 </section>
 

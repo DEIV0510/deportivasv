@@ -92,30 +92,176 @@
 
     /* ---------- Grillas de equipos (bajo pedido) ---------- */
     var EQ = window.SV_EQUIPOS || {};
+    var PROD = window.SV_PRODUCTOS || [];
 
-    function tarjetaEquipo(e) {
-      var msg = encodeURIComponent(
+    var ESTADOS = {
+      ok:     { txt: 'Disponible', cls: 'ok' },
+      pedido: { txt: 'Bajo pedido', cls: 'pedido' },
+      ask:    { txt: 'Consultar disponibilidad', cls: 'ask' }
+    };
+
+    function modelosDe(e) {
+      return e.id ? PROD.filter(function (p) { return p.eq === e.id; }) : [];
+    }
+
+    // Tarjeta de equipo: botón que despliega el panel del equipo
+    function tarjetaEquipo(e, i) {
+      var n = modelosDe(e).length;
+      return '<button type="button" class="tcard reveal" data-eq="' + i + '"' +
+             ' style="--c1:' + e.c[0] + ';--c2:' + e.c[1] + ';--c3:' + e.c[2] + '"' +
+             ' aria-expanded="false">' +
+             '<span class="tcard-mark" aria-hidden="true">' + esc(e.s) + '</span>' +
+             '<b>' + esc(e.n) + '</b>' +
+             '<i>' + (n ? n + (n === 1 ? ' modelo' : ' modelos') : 'Bajo pedido') + '</i>' +
+             '<span class="tcard-go" aria-hidden="true">+</span></button>';
+    }
+
+    function tarjetaModelo(p) {
+      var est = ESTADOS[p.estado] || ESTADOS.ask;
+      var enlace = WA + encodeURIComponent(
+        'Hola, estoy interesado en: ' + p.tt + '. ¿Está disponible?'
+      );
+      return '<article class="mcard">' +
+        '<a class="mcard-media" href="' + enlace + '" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">' +
+          '<picture>' +
+            '<source type="image/avif" srcset="assets/img/' + p.img + '-340.avif 340w, assets/img/' + p.img + '-600.avif 600w" sizes="(min-width:900px) 220px, 44vw">' +
+            '<source type="image/webp" srcset="assets/img/' + p.img + '-340.webp 340w, assets/img/' + p.img + '-600.webp 600w" sizes="(min-width:900px) 220px, 44vw">' +
+            '<img src="assets/img/' + p.img + '-340.webp" width="' + p.w + '" height="' + p.h + '" loading="lazy" decoding="async" alt="' + esc(p.alt) + '">' +
+          '</picture></a>' +
+        '<div class="mcard-bd">' +
+          '<h4>' + esc(p.tt) + '</h4>' +
+          '<p class="mcard-meta">' + esc(p.meta) + '</p>' +
+          '<p class="mcard-estado ' + est.cls + '">' + est.txt + '</p>' +
+          '<a class="btn btn-dark btn-sm btn-block" href="' + enlace + '" target="_blank" rel="noopener">PEDIR</a>' +
+        '</div></article>';
+    }
+
+    // Panel que se despliega debajo de la fila del equipo escogido
+    function panelEquipo(e) {
+      var modelos = modelosDe(e);
+      var pedirGenerico = WA + encodeURIComponent(
         'Hola, quiero una camiseta de ' + e.n + '. ¿Qué temporadas pueden conseguir?'
       );
-      return '<a class="tcard reveal" style="--c1:' + e.c[0] + ';--c2:' + e.c[1] + ';--c3:' + e.c[2] + '"' +
-             ' href="' + WA + msg + '" target="_blank" rel="noopener"' +
-             ' aria-label="Pedir camiseta de ' + esc(e.n) + ' por WhatsApp">' +
-             '<span aria-hidden="true">' + esc(e.s) + '</span>' +
-             '<b>' + esc(e.n) + '</b><i>Bajo pedido</i></a>';
+
+      var publicados = modelos.length
+        ? '<p class="panel-sub">Publicadas de ' + esc(e.n) + '</p>' +
+          '<div class="mgrid">' + modelos.map(tarjetaModelo).join('') + '</div>'
+        : '<p class="panel-sub">Todavía no tenemos fotos publicadas de ' + esc(e.n) + '. ' +
+          'Dinos qué temporada buscas y te confirmamos si la conseguimos.</p>';
+
+      return '<div class="tpanel" role="region" aria-label="Camisetas de ' + esc(e.n) + '">' +
+        '<div class="tpanel-in">' +
+          '<div class="tpanel-hd">' +
+            '<span class="tpanel-mark" style="--c1:' + e.c[0] + ';--c2:' + e.c[1] + ';--c3:' + e.c[2] + '" aria-hidden="true">' + esc(e.s) + '</span>' +
+            '<div class="tpanel-tt">' +
+              '<p class="kicker">BAJO PEDIDO</p>' +
+              '<h3>' + esc(e.n) + '</h3>' +
+            '</div>' +
+            '<button type="button" class="tpanel-close" aria-label="Cerrar ' + esc(e.n) + '">Cerrar</button>' +
+          '</div>' +
+          publicados +
+          '<form class="panel-form" data-equipo="' + esc(e.n) + '">' +
+            '<label for="temp-' + esc(e.s) + '">¿Qué temporada buscas?</label>' +
+            '<div class="panel-form-row">' +
+              '<input id="temp-' + esc(e.s) + '" type="text" name="temporada" placeholder="Ej: 1998/99, local, manga larga" autocomplete="off">' +
+              '<button class="btn btn-wa" type="submit">PEDIR POR WHATSAPP</button>' +
+            '</div>' +
+          '</form>' +
+          '<a class="panel-alt" href="' + pedirGenerico + '" target="_blank" rel="noopener">O escríbenos sin especificar temporada →</a>' +
+        '</div></div>';
+    }
+
+    // Cuántas columnas tiene la grilla ahora mismo
+    function columnas(grid) {
+      var t = getComputedStyle(grid).gridTemplateColumns;
+      return t ? t.split(' ').filter(Boolean).length : 1;
+    }
+
+    function montarGrilla(box, lista) {
+      box.innerHTML = lista.map(tarjetaEquipo).join('');
+      var tarjetas = $$('.tcard', box);
+      var abierto = null; // { panel, boton }
+
+      function cerrar() {
+        if (!abierto) return;
+        var p = abierto.panel;
+        abierto.boton.setAttribute('aria-expanded', 'false');
+        abierto.boton.classList.remove('is-open');
+        p.classList.remove('is-open');
+        setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 260);
+        abierto = null;
+      }
+
+      function abrir(boton, i) {
+        var yaEstaba = abierto && abierto.boton === boton;
+        cerrar();
+        if (yaEstaba) return;
+
+        var panel = document.createElement('div');
+        panel.className = 'tpanel-slot';
+        panel.innerHTML = panelEquipo(lista[i]);
+
+        // Inserta el panel al final de la fila donde está la tarjeta,
+        // para que se despliegue debajo sin partir la cuadrícula.
+        var cols = columnas(box);
+        var finFila = Math.min(Math.floor(i / cols) * cols + cols - 1, tarjetas.length - 1);
+        box.insertBefore(panel, tarjetas[finFila].nextSibling);
+
+        boton.setAttribute('aria-expanded', 'true');
+        boton.classList.add('is-open');
+        abierto = { panel: panel, boton: boton };
+
+        // Fuerza el reflow para que la transición arranque desde 0fr.
+        // (No usamos requestAnimationFrame: no se dispara en pestañas ocultas.)
+        void panel.offsetHeight;
+        panel.classList.add('is-open');
+
+        $('.tpanel-close', panel).addEventListener('click', function () {
+          cerrar();
+          boton.focus();
+        });
+
+        var form = $('.panel-form', panel);
+        form.addEventListener('submit', function (ev) {
+          ev.preventDefault();
+          var temporada = $('input', form).value.trim();
+          var msg = 'Hola, quiero una camiseta de ' + form.dataset.equipo + '.'
+                  + (temporada ? ' Busco esta temporada o versión: ' + temporada + '.'
+                               : ' ¿Qué temporadas pueden conseguir?');
+          window.open(WA + encodeURIComponent(msg), '_blank', 'noopener');
+        });
+      }
+
+      tarjetas.forEach(function (t, i) {
+        t.addEventListener('click', function () { abrir(t, i); });
+      });
+
+      box.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && abierto) {
+          var b = abierto.boton;
+          cerrar();
+          b.focus();
+        }
+      });
+
+      // Si cambia el número de columnas, el panel quedaría mal ubicado
+      window.addEventListener('resize', function () {
+        if (abierto && columnas(box) !== cols0) cerrar();
+      }, { passive: true });
+      var cols0 = columnas(box);
     }
 
     $$('[data-equipos]').forEach(function (box) {
       var lista = EQ[box.dataset.equipos] || [];
       var tope = parseInt(box.dataset.limite, 10);
       if (tope > 0) lista = lista.slice(0, tope);
-      box.innerHTML = lista.map(tarjetaEquipo).join('');
+      montarGrilla(box, lista);
     });
 
-    // Adelanto de la portada: mezcla de selecciones y clubes más pedidos
+    // Adelanto de la portada: selecciones y clubes más pedidos
     var home = document.getElementById('tgrid-home');
     if (home && EQ.selecciones) {
-      var destacados = EQ.selecciones.slice(0, 6).concat(EQ.clubes.slice(0, 6));
-      home.innerHTML = destacados.map(tarjetaEquipo).join('');
+      montarGrilla(home, EQ.selecciones.slice(0, 6).concat(EQ.clubes.slice(0, 6)));
     }
 
     /* ---------- Catálogo: filtros y búsqueda ---------- */

@@ -30,7 +30,7 @@
 
 <!-- CSS crítico: el loader y la barra pintan sin esperar a la hoja externa -->
 <style>
-  :root{--ink:#0c0c0d;--bg:#fff;--red:#e11d2a}
+  :root{--ink:#0c0c0d;--bg:#fff}
   *,*::before,*::after{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
   body{margin:0;background:#fff;color:#0c0c0d;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden}
@@ -40,7 +40,7 @@
   .ld-logo{width:min(280px,64vw);height:auto;animation:ldIn .4s cubic-bezier(.4,0,.2,1) both}
   @keyframes ldIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
   .ld-bar{margin:26px auto 0;width:120px;height:2px;background:rgba(0,0,0,.1);overflow:hidden}
-  .ld-bar i{display:block;height:100%;width:40%;background:#e11d2a;animation:ldrun .7s cubic-bezier(.4,0,.2,1) infinite}
+  .ld-bar i{display:block;height:100%;width:40%;background:#0c0c0d;animation:ldrun .7s cubic-bezier(.4,0,.2,1) infinite}
   @keyframes ldrun{0%{transform:translateX(-110%)}100%{transform:translateX(320%)}}
   @media (prefers-reduced-motion:reduce){.ld-bar i{animation:none;width:100%}}
 </style>
@@ -345,6 +345,7 @@
 </a>
 
 <script src="assets/js/equipos.js" defer></script>
+<script src="assets/js/productos.js" defer></script>
 <script src="assets/js/app.js" defer></script>
 </body>
 </html>
