@@ -21,7 +21,7 @@ window.SV_EQUIPOS = {
     { n: 'Colombia',   s: 'COL', id: 'colombia',  c: ['#FCD116', '#003893', '#CE1126'] },
     { n: 'Alemania',   s: 'ALE', c: ['#000000', '#DD0000', '#FFCE00'] },
     { n: 'España',     s: 'ESP', c: ['#AA151B', '#F1BF00', '#AA151B'] },
-    { n: 'Inglaterra', s: 'ING', c: ['#ffffff', '#CE1124', '#ffffff'] },
+    { n: 'Inglaterra', s: 'ING', id: 'inglaterra', c: ['#ffffff', '#CE1124', '#ffffff'] },
     { n: 'Italia',     s: 'ITA', c: ['#0064AA', '#ffffff', '#009246'] },
     { n: 'Francia',    s: 'FRA', c: ['#002395', '#ffffff', '#ED2939'] },
     { n: 'Portugal',   s: 'POR', id: 'portugal',  c: ['#006600', '#FF0000', '#006600'] },

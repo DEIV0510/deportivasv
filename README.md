@@ -29,8 +29,8 @@ Abre http://localhost:5260
 | Archivo | Qué es |
 |---|---|
 | `index.html` | Portada: hero, lo más buscado, equipos, modalidades, destacados, confianza, redes |
-| `catalogo.html` | Catálogo agrupado por equipo, con buscador y filtros Actuales / Retro |
-| `bajo-pedido.html` | Escoge un equipo: selecciones, clubes y fútbol colombiano |
+| `catalogo.html` | Catálogo agrupado por equipo, con buscador y filtros Actuales / Retro / Shorts |
+| `bajo-pedido.html` | Escoge un equipo y se despliegan sus camisetas: 12 selecciones y 20 clubes |
 | `tallas.html` | Tabla de tallas orientativa y cómo medir |
 | `rastrear.html` | Formulario que abre WhatsApp con la consulta del pedido |
 
@@ -75,8 +75,8 @@ Medido en local sobre la portada:
 
 | Métrica                    | Valor    |
 |----------------------------|----------|
-| Peticiones iniciales       | 21       |
-| Peso inicial transferido   | ~298 KB  |
+| Peticiones iniciales       | 22       |
+| Peso inicial transferido   | ~312 KB  |
 | First Contentful Paint     | ~124 ms  |
 | Bytes de video en la carga | 0        |
 
@@ -164,6 +164,20 @@ más el campo de temporada. No hay que tocar nada para eso.
 Agrega una entrada al objeto `P` de `build-pages.js`, súmala al `grupo()` correspondiente y
 ejecuta `node build-pages.js`. Las imágenes deben existir en `assets/img/` como
 `<nombre>-340.avif|webp` y `<nombre>-600.avif|webp` (las genera `build-images.js`).
+
+`cat` define en qué filtro aparece: `actuales`, `retro` o `shorts`.
+
+### 5b. Fotos nuevas
+
+`build-images.js` tiene dos listas:
+
+- **`MAP`** — fotos verticales contra la pared: se reescalan tal cual.
+- **`CUADRADAS`** — fotos de producto recortadas sobre fondo blanco y en formato cuadrado
+  (como la pantaloneta de Inglaterra). Se les quita la línea oscura del borde, se ajustan al
+  contorno de la prenda y se **encajan** en el mismo marco 3:4 del catálogo sobre blanco, para
+  que una prenda ancha no salga recortada.
+
+Pon el archivo en la lista que corresponda y ejecuta `node build-images.js`.
 
 ### 6. Tabla de tallas
 

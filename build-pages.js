@@ -74,6 +74,14 @@ const P = {
     altA: 'Camiseta retro del Chelsea negra con ribetes azules y cuello gris, marca Nike',
     altB: 'Detalle de la textura del tejido y el logo de la camiseta retro del Chelsea',
     msg: 'Hola, estoy interesado en la camiseta Chelsea Retro. ¿Está disponible?'
+  },
+  englandShorts: {
+    tt: 'Pantaloneta Inglaterra', meta: 'Selección · Pantaloneta', cat: 'shorts', top: false,
+    buscar: 'pantaloneta short shorts inglaterra england blanca nike seleccion tres leones',
+    a: 'england-shorts', b: 'england-shorts-back', w: 600, h: 800,
+    altA: 'Pantaloneta de fútbol de Inglaterra blanca con laterales rojos, escudo de los tres leones y logo de Nike',
+    altB: 'Reverso de la pantaloneta de Inglaterra blanca con los laterales rojos y vivo negro',
+    msg: 'Hola, estoy interesado en la pantaloneta de Inglaterra. ¿Está disponible?'
   }
 };
 
@@ -217,9 +225,10 @@ const catalogo = `<section class="page-head">
         <button class="chip is-on" data-filter="all" type="button">TODO</button>
         <button class="chip" data-filter="actuales" type="button">ACTUALES</button>
         <button class="chip" data-filter="retro" type="button">RETRO</button>
+        <button class="chip" data-filter="shorts" type="button">SHORTS</button>
       </div>
     </div>
-    <p class="kicker kicker-mute" id="cuenta-resultados" aria-live="polite" style="margin-bottom:clamp(28px,4vw,44px)">6 modelos</p>
+    <p class="kicker kicker-mute" id="cuenta-resultados" aria-live="polite" style="margin-bottom:clamp(28px,4vw,44px)">7 modelos</p>
 
 ${grupo('ARGENTINA', 'Argentina', [P.argLocal, P.argNegra])}
 
@@ -228,6 +237,8 @@ ${grupo('PORTUGAL', 'Portugal', [P.portugalLocal, P.portugalAway])}
 ${grupo('COLOMBIA', 'la Selección Colombia', [P.colombia])}
 
 ${grupo('CHELSEA', 'Chelsea', [P.chelsea])}
+
+${grupo('INGLATERRA', 'Inglaterra', [P.englandShorts])}
 
     <div class="empty" id="sin-resultados" hidden>
       <h3>No encontramos “<span id="eco-busqueda"></span>” en el catálogo</h3>

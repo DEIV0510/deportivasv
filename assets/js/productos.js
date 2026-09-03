@@ -40,5 +40,10 @@ window.SV_PRODUCTOS = [
     eq: 'chelsea', tt: 'Chelsea Retro · Negra', meta: 'Club · Retro', estado: 'ask',
     img: 'chelsea-retro', w: 597, h: 887,
     alt: 'Camiseta retro del Chelsea negra con ribetes azules y cuello gris, marca Nike'
+  },
+  {
+    eq: 'inglaterra', tt: 'Pantaloneta Inglaterra', meta: 'Selección · Pantaloneta', estado: 'ask',
+    img: 'england-shorts', w: 600, h: 800,
+    alt: 'Pantaloneta de fútbol de Inglaterra blanca con laterales rojos, escudo de los tres leones y logo de Nike'
   }
 ];
