@@ -29,10 +29,13 @@ Abre http://localhost:5260
 | Archivo | Qué es |
 |---|---|
 | `index.html` | Portada: hero, lo más buscado, equipos, modalidades, destacados, confianza, redes |
-| `catalogo.html` | Catálogo agrupado por equipo, con buscador y filtros Actuales / Retro / Shorts |
-| `bajo-pedido.html` | Escoge un equipo y se despliegan sus camisetas: 12 selecciones y 20 clubes |
+| `catalogo.html` | Catálogo completo con buscador, selector de equipo, filtros y "Ver más" |
+| `bajo-pedido.html` | Escoge un equipo y se despliegan sus camisetas |
 | `tallas.html` | Tabla de tallas orientativa y cómo medir |
 | `rastrear.html` | Formulario que abre WhatsApp con la consulta del pedido |
+
+El catálogo y las grillas de equipos **se generan solos** desde `assets/js/catalogo.js`
+(ver más abajo). Las páginas no llevan productos escritos a mano.
 
 ## Estructura
 
@@ -43,14 +46,15 @@ bajo-pedido.html            | Generadas por build-pages.js — no las edites a m
 tallas.html                 |
 rastrear.html              /
 assets/css/styles.css      Estilos (el CSS crítico va en línea dentro de cada página)
-assets/js/app.js           Loader, menú, buscador, filtros, paneles de equipo, reveal
-assets/js/equipos.js       Lista de equipos (12 selecciones + 20 clubes)
-assets/js/productos.js     Camisetas con foto, enlazadas a su equipo
-assets/img/                Imágenes en AVIF + WebP (340w y 600w) y el logo en PNG
+assets/js/app.js           Loader, menú, catálogo, paneles de equipo, reveal
+assets/js/catalogo.js      GENERADO: equipos y productos (no editar a mano)
+assets/catalogo/           GENERADO: fotos del catálogo en AVIF + WebP (340w y 600w)
+assets/img/                Fotos de la portada, logo, pósters y og
 assets/video/              3 clips reales de la tienda (preload="none")
 assets/brand/              Logo original y foto base, para regenerar los assets
+build-catalogo.js          Lee la carpeta del cliente y genera catalogo.js + assets/catalogo
 build-pages.js             Genera las 4 páginas interiores
-build-images.js            Regenera assets/img desde las fotos originales
+build-images.js            Regenera assets/img desde las fotos de la portada
 build-logo.js              Regenera las piezas del logo
 serve.js                   Servidor estático de desarrollo
 ```
@@ -75,10 +79,11 @@ Medido en local sobre la portada:
 
 | Métrica                    | Valor    |
 |----------------------------|----------|
-| Peticiones iniciales       | 22       |
-| Peso inicial transferido   | ~312 KB  |
+| Peticiones iniciales       | 21       |
+| Peso inicial transferido   | ~281 KB  |
 | First Contentful Paint     | ~124 ms  |
 | Bytes de video en la carga | 0        |
+| Catálogo                   | 205 productos · 38 equipos |
 
 Cómo se consigue:
 
@@ -87,6 +92,8 @@ Cómo se consigue:
 - Videos con `preload="none"` y póster de marca: no descargan un solo byte hasta que se pulsa play.
 - CSS crítico en línea; los scripts con `defer` y sin dependencias.
 - Pantalla de carga con mínimo 0,5 s y tope duro de 1,1 s.
+- El catálogo muestra 24 productos y carga más al pulsar «Ver más»: no se pintan
+  205 tarjetas de golpe.
 
 ## Logo
 
@@ -108,13 +115,19 @@ Si cambias el logo, regenera todo con `node build-logo.js`.
 ### 1. Precios
 
 Ninguna tarjeta muestra precio: dice **"Consultar precio"** porque los recursos entregados
-no incluían listas de precios. Para publicarlos, reemplaza el texto de `<p class="pcard-price">`
-en `index.html` y en la plantilla `pcard()` de `build-pages.js`.
+no incluían listas de precios.
+
+Para publicarlos hay dos sitios:
+
+- **Catálogo y paneles de equipo** → en `assets/js/app.js`, el texto `Consultar precio`
+  dentro de `tarjetaProducto()` y `tarjetaModelo()`. Si los precios varían por producto,
+  añade un campo `precio` en `build-catalogo.js` y léelo aquí.
+- **Portada** → los cuatro `<p class="pcard-price">` de `index.html`.
 
 ### 2. Destacar un producto
 
-El badge **TOP** se controla con `top: true` en `build-pages.js` (objeto `P`).
-En `index.html` es el `<span class="badge badge-top">` de cada tarjeta.
+El badge **TOP** solo se usa en las tarjetas de la portada
+(`<span class="badge badge-top">` en `index.html`).
 
 ### 3. Reseñas
 
@@ -129,55 +142,65 @@ var REVIEWS = [
 
 Las tarjetas se generan solas y el bloque de invitación desaparece.
 
-### 4. Equipos de "bajo pedido" y sus camisetas
+### 4. El catálogo (esto es lo importante)
 
-La página no muestra todas las camisetas de golpe: primero se escoge equipo y **su panel se
-despliega debajo de la fila**, con las camisetas publicadas de ese equipo y un campo para pedir
-otra temporada.
+**Todo el catálogo sale de una carpeta de fotos.** No se escribe ningún producto a mano.
 
-**`assets/js/equipos.js`** — la parrilla de equipos (12 selecciones + 20 clubes):
-
-```js
-{ n: 'Barcelona', s: 'BAR', c: ['#A50044', '#004D98', '#EDBB00'] }
+```bash
+node build-catalogo.js            # usa C:\Users\Lenovo\Desktop\catalogosv
+node build-catalogo.js "D:/otra/ruta"
 ```
 
-`c` son los tres colores de la franja superior de la tarjeta. **No se usan escudos ni logos de
-terceros.** Añade `id: 'barcelona'` solo cuando ese equipo ya tenga camisetas con foto.
+El script recorre la carpeta, optimiza cada foto y escribe `assets/js/catalogo.js`.
+Tarda unos minutos (procesa cientos de imágenes).
 
-**`assets/js/productos.js`** — las camisetas que se despliegan dentro del panel:
+**Estructura que espera la carpeta:**
 
-```js
-{ eq: 'barcelona', tt: 'Barcelona 1998/99', meta: 'Club · Retro', estado: 'ok',
-  img: 'barcelona-9899', w: 600, h: 860, alt: 'descripción de la foto' }
+```
+RETROS/
+  SELECCIONES/<Selección>/<Selección AÑO Variante>/foto1.jpg, foto2.jpg
+  CLUBES/<Club>/<Club AÑO Variante>/foto1.jpg, foto2.jpg
+  CLUBES/<Agrupador>/<Club>/<Club AÑO Variante>/...     ← ej. "Clubes Sudamericanos"
+SHORTS PLAYER/
+  <Equipo Temporada Variante>.jpg                        ← un archivo = un producto
 ```
 
-- `eq` debe coincidir con el `id` del equipo en `equipos.js`.
-- `estado`: `'ok'` Disponible · `'pedido'` Bajo pedido · `'ask'` Consultar disponibilidad.
-- `img` es el nombre base en `assets/img/`; deben existir las variantes `-340` y `-600`
-  en `.avif` y `.webp` (las genera `build-images.js`).
+Dentro de cada carpeta de modelo, **la primera foto por orden alfabético es el frente y la
+segunda la espalda** (la segunda se muestra al pasar el mouse). Si hay más de dos, se usan
+las dos primeras.
 
-Un equipo sin camisetas publicadas muestra el mensaje honesto de "todavía no tenemos fotos"
-más el campo de temporada. No hay que tocar nada para eso.
+**Lo que el script hace solo:**
 
-### 5. Añadir productos al catálogo
+- Reconoce la temporada y la variante del nombre de la carpeta: `3Kit`→Tercera,
+  `Visita`→Visitante, `Especial`→Edición especial, `Arquero`, `Local`.
+- Quita el sufijo del club (`Arsenal FC 2001 - 2002` → Arsenal, 2001-2002).
+- Recorta cada foto al contorno de la prenda y la encaja en el marco 3:4 sobre blanco.
+- Salta duplicados: si el mismo archivo aparece en dos carpetas anidadas, solo cuenta una vez.
+- Marca como selección los equipos de la lista `SELECCIONES` (los shorts no traen esa pista).
 
-Agrega una entrada al objeto `P` de `build-pages.js`, súmala al `grupo()` correspondiente y
-ejecuta `node build-pages.js`. Las imágenes deben existir en `assets/img/` como
-`<nombre>-340.avif|webp` y `<nombre>-600.avif|webp` (las genera `build-images.js`).
+**Lo que hay que mantener a mano dentro de `build-catalogo.js`:**
 
-`cat` define en qué filtro aparece: `actuales`, `retro` o `shorts`.
+| Constante | Para qué |
+|---|---|
+| `NOMBRES` | Corrige erratas y unifica (`Florentina`→Fiorentina, `Holanda`→Países Bajos) |
+| `COLORES` | La franja de color de cada equipo. Si falta, sale gris |
+| `SELECCIONES` | Qué equipos son selección nacional |
+| `AGRUPADORES` | Carpetas que agrupan clubes y no son un equipo |
 
-### 5b. Fotos nuevas
+Si solo cambias nombres, colores o siglas, **no hace falta reprocesar las fotos**:
 
-`build-images.js` tiene dos listas:
+```bash
+node build-catalogo.js --solo-datos
+```
 
-- **`MAP`** — fotos verticales contra la pared: se reescalan tal cual.
-- **`CUADRADAS`** — fotos de producto recortadas sobre fondo blanco y en formato cuadrado
-  (como la pantaloneta de Inglaterra). Se les quita la línea oscura del borde, se ajustan al
-  contorno de la prenda y se **encajan** en el mismo marco 3:4 del catálogo sobre blanco, para
-  que una prenda ancha no salga recortada.
+**No se usan escudos ni logos de terceros:** cada equipo se identifica con sus colores y sus
+iniciales (`SIGLAS` en el script).
 
-Pon el archivo en la lista que corresponda y ejecuta `node build-images.js`.
+### 5. Fotos de la portada
+
+`build-images.js` es solo para las fotos que salen en la portada (hero y destacados). Tiene
+dos listas: `MAP` para las verticales contra la pared y `CUADRADAS` para las recortadas sobre
+blanco. Pon el archivo en la que corresponda y ejecuta `node build-images.js`.
 
 ### 6. Tabla de tallas
 

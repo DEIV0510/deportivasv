@@ -26,112 +26,6 @@ const CRITICO  = entre(index, '<!-- CSS crítico', '</style>', 'el CSS crítico'
 const WA = 'https://wa.me/573146430972?text=';
 const wa = (t) => WA + encodeURIComponent(t);
 
-/* ---------------- Productos reales (los mismos del inicio) ---------------- */
-const P = {
-  argLocal: {
-    tt: 'Argentina Local · #10', meta: 'Selección · Actual', cat: 'actuales', top: true,
-    buscar: 'argentina local 10 seleccion actual albiceleste campeon mundo',
-    a: 'arg-local', b: 'arg-local-det', w: 612, h: 851,
-    altA: 'Camiseta Argentina local blanca y celeste número 10 con parche FIFA World Champions 2022',
-    altB: 'Detalle del parche dorado FIFA World Champions 2022 sobre la camiseta de Argentina',
-    msg: 'Hola, estoy interesado en la camiseta Argentina Local #10. ¿Está disponible?'
-  },
-  argNegra: {
-    tt: 'Argentina Edición Negra · #10', meta: 'Selección · Edición especial', cat: 'actuales', top: false,
-    buscar: 'argentina negra edicion especial 10 seleccion actual',
-    a: 'arg-negra', b: null, w: 615, h: 836,
-    altA: 'Camiseta de Argentina edición especial negra con estampado ornamental azul, número 10 y parche de campeón del mundo',
-    msg: 'Hola, estoy interesado en la camiseta Argentina Edición Negra #10. ¿Está disponible?'
-  },
-  portugalLocal: {
-    tt: 'Portugal Local · #7', meta: 'Selección · Actual', cat: 'actuales', top: false,
-    buscar: 'portugal local 7 ronaldo seleccion actual roja',
-    a: 'portugal-local', b: 'portugal-det', w: 585, h: 888,
-    altA: 'Camiseta de Portugal local roja con verde y el número 7, marca Puma',
-    altB: 'Espalda de la camiseta roja de Portugal con el nombre Ronaldo y el número 7',
-    msg: 'Hola, estoy interesado en la camiseta Portugal Local #7. ¿Está disponible?'
-  },
-  portugalAway: {
-    tt: 'Portugal Visitante · #7', meta: 'Selección · Actual', cat: 'actuales', top: true,
-    buscar: 'portugal visitante 7 ronaldo seleccion actual verde blanca',
-    a: 'portugal-away', b: 'portugal-away-det', w: 582, h: 886,
-    altA: 'Camiseta visitante de Portugal blanca y verde con estampado, número 7, marca Puma',
-    altB: 'Espalda de la camiseta visitante de Portugal con el nombre Ronaldo y el número 7 en color vino tinto',
-    msg: 'Hola, estoy interesado en la camiseta Portugal Visitante #7. ¿Está disponible?'
-  },
-  colombia: {
-    tt: 'Selección Colombia', meta: 'Selección · Actual', cat: 'actuales', top: false,
-    buscar: 'colombia seleccion actual amarilla cafetera',
-    a: 'colombia', b: 'colombia-det', w: 622, h: 852,
-    altA: 'Camiseta de la Selección Colombia amarilla con detalles rojos y azules y escudo de la Federación',
-    altB: 'Detalle del escudo y el tejido de la camiseta de la Selección Colombia',
-    msg: 'Hola, estoy interesado en la camiseta de la Selección Colombia. ¿Está disponible?'
-  },
-  chelsea: {
-    tt: 'Chelsea Retro · Negra', meta: 'Club · Retro', cat: 'retro', top: true,
-    buscar: 'chelsea retro negra nike club clasica',
-    a: 'chelsea-retro', b: 'chelsea-det', w: 597, h: 887,
-    altA: 'Camiseta retro del Chelsea negra con ribetes azules y cuello gris, marca Nike',
-    altB: 'Detalle de la textura del tejido y el logo de la camiseta retro del Chelsea',
-    msg: 'Hola, estoy interesado en la camiseta Chelsea Retro. ¿Está disponible?'
-  },
-  englandShorts: {
-    tt: 'Pantaloneta Inglaterra', meta: 'Selección · Pantaloneta', cat: 'shorts', top: false,
-    buscar: 'pantaloneta short shorts inglaterra england blanca nike seleccion tres leones',
-    a: 'england-shorts', b: 'england-shorts-back', w: 600, h: 800,
-    altA: 'Pantaloneta de fútbol de Inglaterra blanca con laterales rojos, escudo de los tres leones y logo de Nike',
-    altB: 'Reverso de la pantaloneta de Inglaterra blanca con los laterales rojos y vivo negro',
-    msg: 'Hola, estoy interesado en la pantaloneta de Inglaterra. ¿Está disponible?'
-  }
-};
-
-const ESTRELLA = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01z"/></svg>';
-const SIZES = '(min-width:1000px) 290px, (min-width:640px) 30vw, 45vw';
-
-function pcard(p) {
-  const enlace = wa(p.msg);
-  const segunda = p.b
-    ? `\n          <picture>
-            <source type="image/avif" srcset="assets/img/${p.b}-340.avif">
-            <img class="im-b" src="assets/img/${p.b}-340.webp" width="600" height="860" loading="lazy" decoding="async" alt="${p.altB}">
-          </picture>`
-    : '';
-  const badge = p.top
-    ? `\n          <span class="badge badge-top">${ESTRELLA}TOP</span>`
-    : '';
-  return `      <article class="pcard reveal" data-cat="${p.cat}" data-buscar="${p.tt} ${p.buscar}">
-        <a class="pcard-media" href="${enlace}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
-          <picture>
-            <source type="image/avif" srcset="assets/img/${p.a}-340.avif 340w, assets/img/${p.a}-600.avif 600w" sizes="${SIZES}">
-            <source type="image/webp" srcset="assets/img/${p.a}-340.webp 340w, assets/img/${p.a}-600.webp 600w" sizes="${SIZES}">
-            <img class="im-a" src="assets/img/${p.a}-340.webp" width="${p.w}" height="${p.h}" loading="lazy" decoding="async" alt="${p.altA}">
-          </picture>${segunda}${badge}
-        </a>
-        <div class="pcard-bd">
-          <h3 class="pcard-tt">${p.tt}</h3>
-          <p class="pcard-meta">${p.meta}</p>
-          <p class="pcard-price">Consultar precio</p>
-          <a class="btn btn-dark btn-sm btn-block" href="${enlace}" target="_blank" rel="noopener">PEDIR</a>
-        </div>
-      </article>`;
-}
-
-function grupo(titulo, equipo, productos) {
-  const n = productos.length;
-  return `    <section class="group reveal">
-      <header class="group-hd">
-        <div>
-          <p class="kicker">${n} ${n === 1 ? 'MODELO' : 'MODELOS'}</p>
-          <h2>${titulo}</h2>
-        </div>
-        <a class="link-more" href="${wa('Hola, quiero ver todo lo que tienen de ' + equipo + '.')}" target="_blank" rel="noopener">Ver todo de ${equipo} →</a>
-      </header>
-      <div class="pgrid">
-${productos.map(pcard).join('\n\n')}
-      </div>
-    </section>`;
-}
-
 /* ---------------- Plantilla común ---------------- */
 function pagina({ archivo, titulo, descripcion, actual, main }) {
   const cabeza = CABEZA
@@ -184,8 +78,7 @@ ${main}
 
 ${PIE}
 
-<script src="assets/js/equipos.js" defer></script>
-<script src="assets/js/productos.js" defer></script>
+<script src="assets/js/catalogo.js" defer></script>
 <script src="assets/js/app.js" defer></script>
 </body>
 </html>
@@ -208,37 +101,38 @@ function cta(titulo, texto, mensaje) {
 /* ================= CATÁLOGO ================= */
 const catalogo = `<section class="page-head">
   <div class="wrap">
-    <p class="kicker">TIENDADEPORTIVASV · DISPONIBLES</p>
+    <p class="kicker">TIENDADEPORTIVASV · CATÁLOGO</p>
     <h1>CATÁLOGO SV</h1>
-    <p class="lead">Camisetas actuales y retro. Escribe por WhatsApp para confirmar disponibilidad, talla y precio.</p>
+    <p class="lead">Camisetas retro y pantalonetas versión jugador. Escribe por WhatsApp para confirmar
+      disponibilidad, talla y precio.</p>
   </div>
 </section>
 
 <section class="sec sec-grey">
   <div class="wrap">
-    <div class="sec-hd sec-hd-row reveal">
-      <div class="field" style="max-width:340px;width:100%">
-        <label for="filtro-texto">Buscar en el catálogo</label>
-        <input id="filtro-texto" type="search" placeholder="Argentina, retro, Portugal…" autocomplete="off">
+    <div class="filtros reveal">
+      <div class="field">
+        <label for="filtro-texto">Buscar</label>
+        <input id="filtro-texto" type="search" placeholder="Barcelona, 1998, visitante…" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="filtro-equipo">Equipo</label>
+        <select id="filtro-equipo"><option value="">Todos los equipos</option></select>
       </div>
       <div class="chips" role="group" aria-label="Filtrar por tipo">
         <button class="chip is-on" data-filter="all" type="button">TODO</button>
-        <button class="chip" data-filter="actuales" type="button">ACTUALES</button>
         <button class="chip" data-filter="retro" type="button">RETRO</button>
-        <button class="chip" data-filter="shorts" type="button">SHORTS</button>
+        <button class="chip" data-filter="shorts" type="button">PANTALONETAS</button>
       </div>
     </div>
-    <p class="kicker kicker-mute" id="cuenta-resultados" aria-live="polite" style="margin-bottom:clamp(28px,4vw,44px)">7 modelos</p>
 
-${grupo('ARGENTINA', 'Argentina', [P.argLocal, P.argNegra])}
+    <p class="kicker kicker-mute" id="cuenta-resultados" aria-live="polite" style="margin-bottom:clamp(20px,3vw,32px)">Cargando…</p>
 
-${grupo('PORTUGAL', 'Portugal', [P.portugalLocal, P.portugalAway])}
+    <div class="pgrid" id="catalogo-grid"></div>
 
-${grupo('COLOMBIA', 'la Selección Colombia', [P.colombia])}
-
-${grupo('CHELSEA', 'Chelsea', [P.chelsea])}
-
-${grupo('INGLATERRA', 'Inglaterra', [P.englandShorts])}
+    <div class="ver-mas-wrap">
+      <button class="btn btn-line btn-lg" id="ver-mas" type="button" hidden>VER MÁS</button>
+    </div>
 
     <div class="empty" id="sin-resultados" hidden>
       <h3>No encontramos “<span id="eco-busqueda"></span>” en el catálogo</h3>
@@ -255,7 +149,8 @@ const bajoPedido = `<section class="page-head">
   <div class="wrap">
     <p class="kicker">RETRO · BAJO PEDIDO</p>
     <h1>BAJO PEDIDO</h1>
-    <p class="lead">Camisetas clásicas por equipo y temporada. Escoge tu equipo y te confirmamos qué podemos conseguir.</p>
+    <p class="lead">Camisetas clásicas por equipo y temporada: <b data-cuenta="productos">…</b> modelos
+      de <b data-cuenta="equipos">…</b> equipos. Escoge el tuyo y se despliegan sus camisetas.</p>
   </div>
 </section>
 
@@ -289,7 +184,7 @@ const bajoPedido = `<section class="page-head">
       <h2>SELECCIONES RETRO</h2>
       <p class="lead" style="margin-top:12px;max-width:56ch">Toca un equipo y se despliegan sus camisetas.</p>
     </header>
-    <div class="tgrid" data-equipos="selecciones"></div>
+    <div class="tgrid" data-equipos="seleccion"></div>
   </div>
 </section>
 
@@ -300,7 +195,7 @@ const bajoPedido = `<section class="page-head">
       <h2>CLUBES RETRO</h2>
       <p class="lead" style="margin-top:12px;max-width:56ch">Toca un equipo y se despliegan sus camisetas.</p>
     </header>
-    <div class="tgrid" data-equipos="clubes"></div>
+    <div class="tgrid" data-equipos="club"></div>
   </div>
 </section>
 
@@ -437,11 +332,11 @@ ${cta('¿ALGO NO CUADRA<br>CON TU PEDIDO?', 'Escríbenos y lo revisamos contigo 
 const paginas = [
   { archivo: 'catalogo.html', actual: 'catalogo.html', main: catalogo,
     titulo: 'Catálogo | Camisetas de fútbol actuales y retro · TiendaDeportivaSV',
-    descripcion: 'Catálogo de camisetas de fútbol actuales y retro de TiendaDeportivaSV. Argentina, Portugal, Colombia y Chelsea. Pide por WhatsApp desde Villavicencio.' },
+    descripcion: 'Más de 200 camisetas de fútbol retro y pantalonetas versión jugador: Barcelona, Real Madrid, AC Milan, Argentina, Brasil y más. Pide por WhatsApp desde Villavicencio.' },
 
   { archivo: 'bajo-pedido.html', actual: 'bajo-pedido.html', main: bajoPedido,
     titulo: 'Bajo pedido | Camisetas retro por equipo · TiendaDeportivaSV',
-    descripcion: 'Camisetas retro y actuales bajo pedido: selecciones, clubes europeos y fútbol colombiano. Escoge tu equipo y te confirmamos por WhatsApp.' },
+    descripcion: 'Camisetas retro bajo pedido por equipo y temporada: selecciones y clubes europeos y sudamericanos. Escoge tu equipo y se despliegan sus camisetas.' },
 
   { archivo: 'tallas.html', actual: 'tallas.html', main: tallas,
     titulo: 'Guía de tallas | Camisetas de fútbol · TiendaDeportivaSV',

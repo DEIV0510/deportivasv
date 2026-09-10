@@ -3,6 +3,8 @@
   'use strict';
 
   var WA = 'https://wa.me/573146430972?text=';
+  var PASO = 24;          // productos que se muestran de golpe en el catálogo
+  var IMG = 'assets/catalogo/';
 
   /* ------------------------------------------------------------------
      RESEÑAS REALES
@@ -21,6 +23,9 @@
     return String(t).replace(/[&<>"]/g, function (m) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m];
     });
+  };
+  var sinTildes = function (t) {
+    return String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   };
 
   /* ---------- Loader: rápido (0.5s mín. – 1.1s máx.) ---------- */
@@ -43,8 +48,21 @@
 
   document.addEventListener('DOMContentLoaded', function () {
 
+    var CAT = window.SV_CATALOGO || { equipos: [], productos: [] };
+    var PORID = {};
+    CAT.equipos.forEach(function (e) { PORID[e.id] = e; });
+
     /* ---------- Año del pie ---------- */
     $$('.yr').forEach(function (el) { el.textContent = new Date().getFullYear(); });
+
+    /* ---------- Cifras reales del catálogo ---------- */
+    $$('[data-cuenta]').forEach(function (el) {
+      var q = el.dataset.cuenta;
+      el.textContent = q === 'equipos' ? CAT.equipos.length
+        : q === 'retro' ? CAT.productos.filter(function (p) { return p.cat === 'retro'; }).length
+        : q === 'shorts' ? CAT.productos.filter(function (p) { return p.cat === 'shorts'; }).length
+        : CAT.productos.length;
+    });
 
     /* ---------- Barra: sombra al hacer scroll ---------- */
     var topbar = document.getElementById('topbar');
@@ -90,21 +108,78 @@
       if (mq.addEventListener) mq.addEventListener('change', onMq); else mq.addListener(onMq);
     }
 
-    /* ---------- Grillas de equipos (bajo pedido) ---------- */
-    var EQ = window.SV_EQUIPOS || {};
-    var PROD = window.SV_PRODUCTOS || [];
+    /* ================= PRODUCTOS ================= */
 
-    var ESTADOS = {
-      ok:     { txt: 'Disponible', cls: 'ok' },
-      pedido: { txt: 'Bajo pedido', cls: 'pedido' },
-      ask:    { txt: 'Consultar disponibilidad', cls: 'ask' }
-    };
-
-    function modelosDe(e) {
-      return e.id ? PROD.filter(function (p) { return p.eq === e.id; }) : [];
+    // "Japón 1998 · Arquero" — la variante va en el título para que dos
+    // modelos de la misma temporada no se vean iguales en el listado.
+    function nombre(p) {
+      var e = PORID[p.eq];
+      var base = [e ? e.n : '', p.t].filter(Boolean).join(' ');
+      return p.v && p.v !== 'Retro' ? base + ' · ' + p.v : base;
+    }
+    function detalle(p) {
+      var e = PORID[p.eq];
+      var tipo = p.cat === 'shorts' ? 'Pantaloneta'
+        : (e && e.tipo === 'seleccion') ? 'Selección' : 'Club';
+      return tipo + ' · ' + (p.cat === 'shorts' ? 'Versión jugador' : 'Retro');
+    }
+    function alt(p, cara) {
+      var e = PORID[p.eq];
+      var prenda = p.cat === 'shorts' ? 'Pantaloneta de fútbol' : 'Camiseta de fútbol';
+      return prenda + ' de ' + (e ? e.n : '') + (p.t ? ' temporada ' + p.t : '') +
+             (p.v ? ' ' + p.v : '') + (cara === 2 ? ', vista por detrás' : '');
+    }
+    function enlace(p) {
+      return WA + encodeURIComponent('Hola, estoy interesado en: ' + p.n + '. ¿Está disponible?');
+    }
+    function foto(p, cara, clase, sizes) {
+      var b = IMG + p.img + '-' + cara;
+      return '<picture>' +
+        '<source type="image/avif" srcset="' + b + '-340.avif 340w, ' + b + '-600.avif 600w" sizes="' + sizes + '">' +
+        '<source type="image/webp" srcset="' + b + '-340.webp 340w, ' + b + '-600.webp 600w" sizes="' + sizes + '">' +
+        '<img class="' + clase + '" src="' + b + '-340.webp" width="600" height="800" loading="lazy" decoding="async" alt="' + esc(alt(p, cara)) + '">' +
+        '</picture>';
     }
 
-    // Tarjeta de equipo: botón que despliega el panel del equipo
+    // Tarjeta grande (catálogo)
+    function tarjetaProducto(p) {
+      var url = enlace(p);
+      var sizes = '(min-width:1000px) 290px, (min-width:640px) 30vw, 45vw';
+      return '<article class="pcard reveal">' +
+        '<a class="pcard-media" href="' + url + '" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">' +
+          foto(p, 1, 'im-a', sizes) +
+          (p.f > 1 ? foto(p, 2, 'im-b', sizes) : '') +
+        '</a>' +
+        '<div class="pcard-bd">' +
+          '<h3 class="pcard-tt">' + esc(nombre(p)) + '</h3>' +
+          '<p class="pcard-meta">' + esc(detalle(p)) + '</p>' +
+          '<p class="pcard-price">Consultar precio</p>' +
+          '<a class="btn btn-dark btn-sm btn-block" href="' + url + '" target="_blank" rel="noopener">PEDIR</a>' +
+        '</div></article>';
+    }
+
+    // Tarjeta pequeña (dentro del panel de un equipo)
+    function tarjetaModelo(p) {
+      var url = enlace(p);
+      var sizes = '(min-width:900px) 200px, 44vw';
+      return '<article class="mcard">' +
+        '<a class="mcard-media" href="' + url + '" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">' +
+          foto(p, 1, 'im-a', sizes) +
+        '</a>' +
+        '<div class="mcard-bd">' +
+          '<h4>' + esc([p.t, p.v && p.v !== 'Retro' ? p.v : ''].filter(Boolean).join(' · ') || 'Retro') + '</h4>' +
+          '<p class="mcard-meta">' + esc(detalle(p)) + '</p>' +
+          '<p class="mcard-estado ask">Consultar disponibilidad</p>' +
+          '<a class="btn btn-dark btn-sm btn-block" href="' + url + '" target="_blank" rel="noopener">PEDIR</a>' +
+        '</div></article>';
+    }
+
+    /* ================= GRILLAS DE EQUIPOS ================= */
+
+    function modelosDe(e) {
+      return CAT.productos.filter(function (p) { return p.eq === e.id; });
+    }
+
     function tarjetaEquipo(e, i) {
       var n = modelosDe(e).length;
       return '<button type="button" class="tcard reveal" data-eq="' + i + '"' +
@@ -116,27 +191,6 @@
              '<span class="tcard-go" aria-hidden="true">+</span></button>';
     }
 
-    function tarjetaModelo(p) {
-      var est = ESTADOS[p.estado] || ESTADOS.ask;
-      var enlace = WA + encodeURIComponent(
-        'Hola, estoy interesado en: ' + p.tt + '. ¿Está disponible?'
-      );
-      return '<article class="mcard">' +
-        '<a class="mcard-media" href="' + enlace + '" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">' +
-          '<picture>' +
-            '<source type="image/avif" srcset="assets/img/' + p.img + '-340.avif 340w, assets/img/' + p.img + '-600.avif 600w" sizes="(min-width:900px) 220px, 44vw">' +
-            '<source type="image/webp" srcset="assets/img/' + p.img + '-340.webp 340w, assets/img/' + p.img + '-600.webp 600w" sizes="(min-width:900px) 220px, 44vw">' +
-            '<img src="assets/img/' + p.img + '-340.webp" width="' + p.w + '" height="' + p.h + '" loading="lazy" decoding="async" alt="' + esc(p.alt) + '">' +
-          '</picture></a>' +
-        '<div class="mcard-bd">' +
-          '<h4>' + esc(p.tt) + '</h4>' +
-          '<p class="mcard-meta">' + esc(p.meta) + '</p>' +
-          '<p class="mcard-estado ' + est.cls + '">' + est.txt + '</p>' +
-          '<a class="btn btn-dark btn-sm btn-block" href="' + enlace + '" target="_blank" rel="noopener">PEDIR</a>' +
-        '</div></article>';
-    }
-
-    // Panel que se despliega debajo de la fila del equipo escogido
     function panelEquipo(e) {
       var modelos = modelosDe(e);
       var pedirGenerico = WA + encodeURIComponent(
@@ -144,7 +198,8 @@
       );
 
       var publicados = modelos.length
-        ? '<p class="panel-sub">Publicadas de ' + esc(e.n) + '</p>' +
+        ? '<p class="panel-sub">' + modelos.length + (modelos.length === 1 ? ' modelo publicado' : ' modelos publicados') +
+          ' de ' + esc(e.n) + '. ¿Buscas otra temporada? Pídela abajo.</p>' +
           '<div class="mgrid">' + modelos.map(tarjetaModelo).join('') + '</div>'
         : '<p class="panel-sub">Todavía no tenemos fotos publicadas de ' + esc(e.n) + '. ' +
           'Dinos qué temporada buscas y te confirmamos si la conseguimos.</p>';
@@ -154,24 +209,28 @@
           '<div class="tpanel-hd">' +
             '<span class="tpanel-mark" style="--c1:' + e.c[0] + ';--c2:' + e.c[1] + ';--c3:' + e.c[2] + '" aria-hidden="true">' + esc(e.s) + '</span>' +
             '<div class="tpanel-tt">' +
-              '<p class="kicker">BAJO PEDIDO</p>' +
+              '<p class="kicker">' + (e.tipo === 'seleccion' ? 'SELECCIÓN' : 'CLUB') + '</p>' +
               '<h3>' + esc(e.n) + '</h3>' +
             '</div>' +
             '<button type="button" class="tpanel-close" aria-label="Cerrar ' + esc(e.n) + '">Cerrar</button>' +
           '</div>' +
           publicados +
           '<form class="panel-form" data-equipo="' + esc(e.n) + '">' +
-            '<label for="temp-' + esc(e.s) + '">¿Qué temporada buscas?</label>' +
+            '<label for="temp-' + esc(e.id) + '">¿Buscas otra temporada?</label>' +
             '<div class="panel-form-row">' +
-              '<input id="temp-' + esc(e.s) + '" type="text" name="temporada" placeholder="Ej: 1998/99, local, manga larga" autocomplete="off">' +
+              '<input id="temp-' + esc(e.id) + '" type="text" name="temporada" placeholder="Ej: 1998/99, visitante, manga larga" autocomplete="off">' +
               '<button class="btn btn-wa" type="submit">PEDIR POR WHATSAPP</button>' +
             '</div>' +
           '</form>' +
-          '<a class="panel-alt" href="' + pedirGenerico + '" target="_blank" rel="noopener">O escríbenos sin especificar temporada →</a>' +
+          '<div class="panel-pie">' +
+            (modelos.length > 4
+              ? '<a class="link-more" href="catalogo.html?eq=' + e.id + '">Ver los ' + modelos.length + ' de ' + esc(e.n) + ' →</a>'
+              : '') +
+            '<a class="panel-alt" href="' + pedirGenerico + '" target="_blank" rel="noopener">O escríbenos sin especificar temporada →</a>' +
+          '</div>' +
         '</div></div>';
     }
 
-    // Cuántas columnas tiene la grilla ahora mismo
     function columnas(grid) {
       var t = getComputedStyle(grid).gridTemplateColumns;
       return t ? t.split(' ').filter(Boolean).length : 1;
@@ -180,7 +239,8 @@
     function montarGrilla(box, lista) {
       box.innerHTML = lista.map(tarjetaEquipo).join('');
       var tarjetas = $$('.tcard', box);
-      var abierto = null; // { panel, boton }
+      var abierto = null;
+      var cols0 = columnas(box);
 
       function cerrar() {
         if (!abierto) return;
@@ -244,92 +304,130 @@
         }
       });
 
-      // Si cambia el número de columnas, el panel quedaría mal ubicado
       window.addEventListener('resize', function () {
         if (abierto && columnas(box) !== cols0) cerrar();
       }, { passive: true });
-      var cols0 = columnas(box);
     }
 
     $$('[data-equipos]').forEach(function (box) {
-      var lista = EQ[box.dataset.equipos] || [];
+      var tipo = box.dataset.equipos;
+      var lista = CAT.equipos.filter(function (e) {
+        return tipo === 'todos' || e.tipo === tipo;
+      });
       var tope = parseInt(box.dataset.limite, 10);
-      if (tope > 0) lista = lista.slice(0, tope);
+      if (tope > 0) {
+        lista = lista.slice().sort(function (a, b) { return modelosDe(b).length - modelosDe(a).length; }).slice(0, tope);
+        lista.sort(function (a, b) { return a.n.localeCompare(b.n, 'es'); });
+      }
       montarGrilla(box, lista);
     });
 
-    // Adelanto de la portada: selecciones y clubes más pedidos
-    var home = document.getElementById('tgrid-home');
-    if (home && EQ.selecciones) {
-      montarGrilla(home, EQ.selecciones.slice(0, 6).concat(EQ.clubes.slice(0, 6)));
-    }
-
-    /* ---------- Catálogo: filtros y búsqueda ---------- */
-    var cards = $$('[data-cat]');
-
-    function aplicar(filtro, texto) {
-      var q = (texto || '').trim().toLowerCase();
-      var visibles = 0;
-      cards.forEach(function (card) {
-        var okCat = filtro === 'all' || card.dataset.cat === filtro;
-        var okTxt = !q || (card.dataset.buscar || '').toLowerCase().indexOf(q) !== -1;
-        var ver = okCat && okTxt;
-        card.classList.toggle('is-hidden', !ver);
-        if (ver) visibles++;
-      });
-      // Oculta los grupos que se quedaron sin tarjetas visibles
-      $$('.group').forEach(function (g) {
-        var quedan = $$('[data-cat]:not(.is-hidden)', g).length;
-        g.hidden = quedan === 0;
-      });
+    /* ================= CATÁLOGO ================= */
+    var rejilla = document.getElementById('catalogo-grid');
+    if (rejilla) {
+      var buscador = document.getElementById('filtro-texto');
+      var selEquipo = document.getElementById('filtro-equipo');
+      var btnMas = document.getElementById('ver-mas');
+      var cuenta = document.getElementById('cuenta-resultados');
       var vacio = document.getElementById('sin-resultados');
-      if (vacio) {
-        vacio.hidden = visibles > 0;
-        var eco = document.getElementById('eco-busqueda');
-        if (eco) eco.textContent = q;
-        var waVacio = document.getElementById('wa-sin-resultados');
-        if (waVacio) {
-          waVacio.href = WA + encodeURIComponent(
-            q ? 'Hola, busco esta referencia: ' + texto + '. ¿La pueden conseguir?'
-              : 'Hola, busco una referencia. ¿Me ayudan?'
-          );
+      var chips = $$('.chip');
+      var filtro = 'all';
+      var visibles = PASO;
+      var resultado = [];
+
+      // El selector de equipos se llena desde el catálogo
+      if (selEquipo) {
+        var grupos = [['seleccion', 'Selecciones'], ['club', 'Clubes']];
+        selEquipo.innerHTML = '<option value="">Todos los equipos</option>' +
+          grupos.map(function (g) {
+            var ops = CAT.equipos.filter(function (e) { return e.tipo === g[0]; })
+              .map(function (e) {
+                return '<option value="' + e.id + '">' + esc(e.n) + ' (' + modelosDe(e).length + ')</option>';
+              }).join('');
+            return '<optgroup label="' + g[1] + '">' + ops + '</optgroup>';
+          }).join('');
+      }
+
+      function calcular() {
+        var q = sinTildes(buscador ? buscador.value.trim() : '');
+        var eqId = selEquipo ? selEquipo.value : '';
+        resultado = CAT.productos.filter(function (p) {
+          if (filtro !== 'all' && p.cat !== filtro) return false;
+          if (eqId && p.eq !== eqId) return false;
+          if (q) {
+            var e = PORID[p.eq];
+            var texto = sinTildes(p.n + ' ' + (e ? e.n + ' ' + e.tipo : '') + ' ' + p.cat + ' ' + p.v);
+            if (texto.indexOf(q) === -1) return false;
+          }
+          return true;
+        });
+      }
+
+      function pintar() {
+        var trozo = resultado.slice(0, visibles);
+        rejilla.innerHTML = trozo.map(tarjetaProducto).join('');
+        $$('.reveal', rejilla).forEach(function (el) { el.classList.add('is-in'); });
+
+        if (cuenta) {
+          cuenta.textContent = resultado.length +
+            (resultado.length === 1 ? ' modelo' : ' modelos') +
+            (resultado.length > trozo.length ? ' · mostrando ' + trozo.length : '');
+        }
+        if (btnMas) {
+          btnMas.hidden = resultado.length <= visibles;
+          btnMas.textContent = 'VER MÁS (' + Math.min(PASO, resultado.length - visibles) + ')';
+        }
+        if (vacio) {
+          vacio.hidden = resultado.length > 0;
+          var q = buscador ? buscador.value.trim() : '';
+          var eco = document.getElementById('eco-busqueda');
+          if (eco) eco.textContent = q || 'esa combinación';
+          var waVacio = document.getElementById('wa-sin-resultados');
+          if (waVacio) {
+            waVacio.href = WA + encodeURIComponent(
+              q ? 'Hola, busco esta referencia: ' + q + '. ¿La pueden conseguir?'
+                : 'Hola, busco una referencia. ¿Me ayudan?'
+            );
+          }
         }
       }
-      var cuenta = document.getElementById('cuenta-resultados');
-      if (cuenta) cuenta.textContent = visibles + (visibles === 1 ? ' modelo' : ' modelos');
-      return visibles;
-    }
 
-    if (cards.length) {
-      var chips = $$('.chip');
-      var buscador = document.getElementById('filtro-texto');
-      var filtroActual = 'all';
+      function refrescar(reiniciar) {
+        if (reiniciar !== false) visibles = PASO;
+        calcular();
+        pintar();
+      }
 
       chips.forEach(function (chip) {
         chip.addEventListener('click', function () {
-          filtroActual = chip.dataset.filter;
+          filtro = chip.dataset.filter;
           chips.forEach(function (c) { c.classList.toggle('is-on', c === chip); });
-          aplicar(filtroActual, buscador ? buscador.value : '');
+          refrescar();
         });
       });
+
+      if (selEquipo) selEquipo.addEventListener('change', function () { refrescar(); });
 
       if (buscador) {
         var t;
         buscador.addEventListener('input', function () {
           clearTimeout(t);
-          t = setTimeout(function () { aplicar(filtroActual, buscador.value); }, 160);
+          t = setTimeout(function () { refrescar(); }, 160);
         });
-        // Búsqueda que llega desde la barra superior: catalogo.html?q=...
-        var q = new URLSearchParams(location.search).get('q');
-        if (q) {
-          buscador.value = q;
-          aplicar(filtroActual, q);
-        } else {
-          aplicar(filtroActual, '');
-        }
-      } else {
-        aplicar(filtroActual, '');
       }
+
+      if (btnMas) {
+        btnMas.addEventListener('click', function () {
+          visibles += PASO;
+          pintar();
+        });
+      }
+
+      // Búsqueda o equipo que llegan por la URL: catalogo.html?q=…&eq=…
+      var params = new URLSearchParams(location.search);
+      if (params.get('q') && buscador) buscador.value = params.get('q');
+      if (params.get('eq') && selEquipo) selEquipo.value = params.get('eq');
+      refrescar();
     }
 
     /* ---------- Rastrear pedido -> WhatsApp ---------- */
@@ -338,10 +436,10 @@
       formRastreo.addEventListener('submit', function (e) {
         e.preventDefault();
         var pedido = $('#pedido', formRastreo).value.trim();
-        var nombre = $('#nombre', formRastreo).value.trim();
+        var nom = $('#nombre', formRastreo).value.trim();
         var msg = 'Hola, quiero saber el estado de mi pedido.'
                 + (pedido ? ' Número o referencia: ' + pedido + '.' : '')
-                + (nombre ? ' Está a nombre de ' + nombre + '.' : '');
+                + (nom ? ' Está a nombre de ' + nom + '.' : '');
         window.open(WA + encodeURIComponent(msg), '_blank', 'noopener');
       });
     }
