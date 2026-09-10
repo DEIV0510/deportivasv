@@ -253,7 +253,8 @@ const imgs = (d) => fs.readdirSync(d, { withFileTypes: true })
     const nombreCarpeta = path.basename(carpeta);
     let { temporada, variante } = partirModelo(nombreCarpeta, [aliasCarpeta, eq.n]);
     if (!temporada && !variante) variante = 'Retro';   // p. ej. la carpeta "Paises Bajos"
-    const id = slug(`${eq.id}-${temporada || variante}-${variante}`);
+    // El id es la URL de la ficha: sin repetir la variante cuando no hay temporada
+    const id = slug([eq.id, temporada, variante].filter(Boolean).join('-'));
     const dir = path.join(OUT_IMG, eq.id);
     fs.mkdirSync(dir, { recursive: true });
 

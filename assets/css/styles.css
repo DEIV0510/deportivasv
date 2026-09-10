@@ -499,6 +499,116 @@ td{color:var(--ink-2);font-variant-numeric:tabular-nums}
 .empty h3{font-size:20px;margin-bottom:8px}
 .empty p{color:var(--ink-2);margin-bottom:20px}
 
+/* ==========================================================================
+   FICHA DE PRODUCTO
+   ========================================================================== */
+.crumbs{background:var(--bg);padding:18px 0 0;font-size:13px;color:var(--muted)}
+.crumbs .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.crumbs a{color:var(--muted);transition:color .16s var(--ease)}
+.crumbs a:hover{color:var(--ink)}
+.crumbs span{color:var(--line);user-select:none}
+.crumbs b{color:var(--ink);font-weight:600}
+
+.pdp{background:var(--bg);padding:clamp(20px,3vw,34px) 0 clamp(40px,6vw,72px)}
+.pdp-in{display:grid;gap:clamp(24px,4vw,56px);align-items:start}
+@media (min-width:900px){ .pdp-in{grid-template-columns:minmax(0,1.05fr) minmax(320px,420px)} }
+
+/* --- galería --- */
+.pdp-galeria{display:grid;gap:12px}
+@media (min-width:640px){ .pdp-galeria{grid-template-columns:78px minmax(0,1fr)} }
+.pdp-minis{display:flex;gap:10px;order:2;overflow-x:auto;padding-bottom:4px}
+@media (min-width:640px){ .pdp-minis{order:0;flex-direction:column;overflow:visible} }
+.pdp-mini{
+  flex:none;width:66px;padding:0;border-radius:10px;overflow:hidden;
+  background:var(--bg-2);box-shadow:inset 0 0 0 1px var(--line);
+  transition:box-shadow .18s var(--ease);
+}
+.pdp-mini img{width:100%;height:auto;display:block}
+.pdp-mini:hover{box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
+.pdp-mini.is-on{box-shadow:inset 0 0 0 2px var(--ink)}
+
+.pdp-visor{
+  position:relative;background:var(--bg-2);border-radius:var(--r);overflow:hidden;
+  aspect-ratio:3/4;box-shadow:var(--shadow);
+}
+.pdp-foto{position:absolute;inset:0;opacity:0;transition:opacity .3s var(--ease)}
+.pdp-foto.is-on{opacity:1}
+.pdp-foto img{width:100%;height:100%;object-fit:contain}
+
+/* --- columna de compra --- */
+.pdp-marca{
+  font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;
+}
+.pdp-tt{
+  font-family:"Archivo Black","Arial Black",sans-serif;font-weight:400;
+  font-size:clamp(24px,3.4vw,34px);letter-spacing:-.022em;line-height:1.06;color:var(--ink);
+}
+.pdp-vendedor{font-size:13.5px;color:var(--muted);margin-top:12px}
+.pdp-vendedor b{color:var(--ink);font-weight:600}
+.pdp-precio{
+  font-family:"Archivo Black","Arial Black",sans-serif;font-weight:400;
+  font-size:clamp(22px,3vw,28px);letter-spacing:-.02em;color:var(--ink);margin-top:22px;
+}
+.pdp-nota{font-size:13.5px;color:var(--muted);margin-top:6px}
+
+.pdp-tallas{margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}
+.pdp-tallas-hd{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:12px}
+.pdp-tallas-hd span{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--ink)}
+.pdp-tallas-hd a{font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);transition:color .16s var(--ease)}
+.pdp-tallas-hd a:hover{color:var(--ink);border-color:var(--ink)}
+.pdp-tallas small{display:block;margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.45}
+
+.tallas-grid{display:flex;flex-wrap:wrap;gap:8px}
+.talla{
+  min-width:56px;min-height:48px;padding:12px 14px;
+  border:1px solid var(--line);border-radius:10px;background:var(--white);
+  font-size:14px;font-weight:700;color:var(--ink);
+  transition:background-color .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease);
+}
+.talla:hover{border-color:var(--ink)}
+.talla.is-on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.pdp-cta{margin-top:24px}
+.pdp-compra .btn + .btn{margin-top:10px}
+
+.pdp-plus{margin-top:26px;padding-top:22px;border-top:1px solid var(--line);display:grid;gap:10px}
+.pdp-plus li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--ink-2)}
+.pdp-plus li::before{
+  content:"";flex:none;width:16px;height:16px;margin-top:2px;border-radius:50%;
+  background:var(--ink);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 13 4 4L19 7'/%3E%3C/svg%3E") center/12px no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 13 4 4L19 7'/%3E%3C/svg%3E") center/12px no-repeat;
+}
+
+/* --- detalles y buscar más --- */
+.pdp-abajo{display:grid;gap:clamp(28px,4vw,56px)}
+@media (min-width:900px){ .pdp-abajo{grid-template-columns:1.2fr 1fr} }
+.pdp-h2{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin-bottom:16px}
+.pdp-desc{color:var(--ink-2);max-width:60ch;margin-bottom:22px}
+.pdp-specs{display:grid;grid-template-columns:auto 1fr;gap:10px 24px;font-size:14.5px}
+.pdp-specs dt{font-weight:700;color:var(--ink)}
+.pdp-specs dd{color:var(--ink-2);margin:0}
+.pdp-chips{display:flex;flex-wrap:wrap;gap:8px}
+.pdp-chips a{
+  display:inline-flex;align-items:center;min-height:44px;
+  padding:10px 18px;border-radius:var(--pill);background:var(--white);
+  border:1px solid var(--line);font-size:13px;color:var(--ink-2);
+  transition:background-color .16s var(--ease),color .16s var(--ease),border-color .16s var(--ease);
+}
+.pdp-chips a:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pdp-pasos{display:grid;gap:10px;counter-reset:paso2;font-size:14.5px;color:var(--ink-2)}
+.pdp-pasos li{display:flex;gap:12px;align-items:flex-start}
+.pdp-pasos li::before{
+  counter-increment:paso2;content:counter(paso2);
+  flex:none;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;
+  font-size:12px;font-weight:700;display:grid;place-items:center;
+}
+
+/* La tarjeta de producto también sirve como enlace a la ficha */
+.pcard-tt a{color:inherit}
+.pcard-tt a:hover{text-decoration:underline}
+
 /* ---------- Filtros del catálogo ---------- */
 .filtros{
   display:grid;gap:14px;align-items:end;

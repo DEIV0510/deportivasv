@@ -26,11 +26,24 @@ const CRITICO  = entre(index, '<!-- CSS crítico', '</style>', 'el CSS crítico'
 const WA = 'https://wa.me/573146430972?text=';
 const wa = (t) => WA + encodeURIComponent(t);
 
-/* ---------------- Plantilla común ---------------- */
-function pagina({ archivo, titulo, descripcion, actual, main }) {
-  const cabeza = CABEZA
+/* ---------------- Plantilla común ----------------
+   `base` antepone '../' a las rutas cuando la página vive en una subcarpeta
+   (las fichas de producto están en p/). */
+function pagina({ archivo, titulo, descripcion, actual, main, base = '', imagen }) {
+  let cabeza = CABEZA
     .replace('<a href="index.html" aria-current="page">Inicio</a>', '<a href="index.html">Inicio</a>')
     .replace(`<a href="${actual}">`, `<a href="${actual}" aria-current="page">`);
+
+  let pie = PIE, loader = LOADER, critico = CRITICO;
+  if (base) {
+    const reescribir = (s) => s
+      .replace(/(src|href|action)="(?!https?:|#|data:|\/)/g, `$1="${base}`)
+      .replace(/srcset="(?!https?:)/g, `srcset="${base}`);
+    cabeza = reescribir(cabeza);
+    pie = reescribir(pie);
+    loader = reescribir(loader);
+  }
+  const og = imagen || `${base}assets/img/og-tiendadeportivasv.jpg`;
 
   return `<!DOCTYPE html>
 <html lang="es-CO">
@@ -50,24 +63,24 @@ function pagina({ archivo, titulo, descripcion, actual, main }) {
 <meta property="og:title" content="${titulo}">
 <meta property="og:description" content="${descripcion}">
 <meta property="og:url" content="https://tiendadeportivasv.com/${archivo}">
-<meta property="og:image" content="assets/img/og-tiendadeportivasv.jpg">
+<meta property="og:image" content="${og}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="assets/img/og-tiendadeportivasv.jpg">
+<meta name="twitter:image" content="${og}">
 
-<link rel="icon" type="image/png" href="assets/img/favicon-sv.png">
-<link rel="apple-touch-icon" href="assets/img/favicon-sv.png">
+<link rel="icon" type="image/png" href="${base}assets/img/favicon-sv.png">
+<link rel="apple-touch-icon" href="${base}assets/img/favicon-sv.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="image" href="assets/img/logo-sv-lockup-dark-560.png" fetchpriority="high">
+<link rel="preload" as="image" href="${base}assets/img/logo-sv-lockup-dark-560.png" fetchpriority="high">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-${CRITICO}
-<link rel="stylesheet" href="assets/css/styles.css">
+${critico}
+<link rel="stylesheet" href="${base}assets/css/styles.css">
 </head>
 <body>
 
-${LOADER}
+${loader}
 
 ${cabeza}
 <main id="main">
@@ -76,10 +89,10 @@ ${main}
 
 </main>
 
-${PIE}
+${pie}
 
-<script src="assets/js/catalogo.js" defer></script>
-<script src="assets/js/app.js" defer></script>
+<script src="${base}assets/js/catalogo.js" defer></script>
+<script src="${base}assets/js/app.js" defer></script>
 </body>
 </html>
 `;
@@ -352,4 +365,218 @@ for (const p of paginas) {
   fs.writeFileSync(path.join(raiz, p.archivo), html, 'utf8');
   console.log(p.archivo, Math.round(Buffer.byteLength(html) / 1024) + 'KB');
 }
+
+/* ================= FICHAS DE PRODUCTO ================= */
+/* Una página por producto en p/<id>.html, generada desde catalogo.js.
+   Son páginas reales: se pueden compartir, indexar y volver atrás. */
+
+const esc = (t) => String(t).replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+const TALLAS = ['S', 'M', 'L', 'XL', 'XXL'];
+
+const catalogoJs = path.join(raiz, 'assets', 'js', 'catalogo.js');
+if (!fs.existsSync(catalogoJs)) {
+  console.log('\nassets/js/catalogo.js no existe: ejecuta antes  node build-catalogo.js');
+} else {
+  global.window = {};
+  eval(fs.readFileSync(catalogoJs, 'utf8'));
+  const CAT = global.window.SV_CATALOGO;
+  const PORID = {};
+  CAT.equipos.forEach((e) => { PORID[e.id] = e; });
+
+  const dirP = path.join(raiz, 'p');
+  fs.rmSync(dirP, { recursive: true, force: true });
+  fs.mkdirSync(dirP, { recursive: true });
+
+  const esShort = (p) => p.cat === 'shorts';
+  const prenda = (p) => (esShort(p) ? 'Pantaloneta' : 'Camiseta');
+  const nombreProducto = (p) => {
+    const e = PORID[p.eq];
+    const base = [e.n, p.t].filter(Boolean).join(' ');
+    return p.v && p.v !== 'Retro' ? `${base} · ${p.v}` : base;
+  };
+  const tituloLargo = (p) =>
+    `${prenda(p)} ${esShort(p) ? 'versión jugador' : 'de fútbol'} ${nombreProducto(p)}`;
+
+  function galeria(p) {
+    const caras = [];
+    for (let i = 1; i <= p.f; i++) caras.push(i);
+    const src = (i, w, ext) => `../assets/catalogo/${p.img}-${i}-${w}.${ext}`;
+    const altTxt = (i) =>
+      `${tituloLargo(p)}${i === 2 ? ', vista por detrás' : ''}`;
+
+    const grande = caras.map((i) => `
+        <picture class="pdp-foto${i === 1 ? ' is-on' : ''}" data-cara="${i}">
+          <source type="image/avif" srcset="${src(i, 340, 'avif')} 340w, ${src(i, 600, 'avif')} 600w" sizes="(min-width:900px) 520px, 92vw">
+          <source type="image/webp" srcset="${src(i, 340, 'webp')} 340w, ${src(i, 600, 'webp')} 600w" sizes="(min-width:900px) 520px, 92vw">
+          <img src="${src(i, 600, 'webp')}" width="600" height="800" ${i === 1 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" alt="${esc(altTxt(i))}">
+        </picture>`).join('');
+
+    const minis = caras.length > 1 ? `
+      <div class="pdp-minis" role="tablist" aria-label="Fotos del producto">
+        ${caras.map((i) => `<button type="button" class="pdp-mini${i === 1 ? ' is-on' : ''}" data-cara="${i}" role="tab" aria-selected="${i === 1}" aria-label="Foto ${i} de ${caras.length}">
+          <img src="${src(i, 340, 'webp')}" width="340" height="453" loading="lazy" decoding="async" alt="">
+        </button>`).join('\n        ')}
+      </div>` : '';
+
+    return `<div class="pdp-galeria">${minis}
+      <div class="pdp-visor">${grande}
+      </div>
+    </div>`;
+  }
+
+  function relacionados(p) {
+    const mismos = CAT.productos.filter((o) => o.eq === p.eq && o.id !== p.id);
+    const otros = CAT.productos.filter((o) => o.eq !== p.eq && o.cat === p.cat);
+    const lista = mismos.concat(otros.sort(() => 0.5 - Math.random())).slice(0, 6);
+    if (!lista.length) return '';
+    return `
+<section class="sec sec-tight">
+  <div class="wrap">
+    <header class="sec-hd reveal"><p class="kicker">TE PUEDE INTERESAR</p><h2>MÁS MODELOS</h2></header>
+    <div class="pgrid">
+${lista.map((o) => `      <article class="pcard reveal">
+        <a class="pcard-media" href="${o.id}.html">
+          <picture>
+            <source type="image/avif" srcset="../assets/catalogo/${o.img}-1-340.avif">
+            <img src="../assets/catalogo/${o.img}-1-340.webp" width="600" height="800" loading="lazy" decoding="async" alt="${esc(tituloLargo(o))}">
+          </picture>
+        </a>
+        <div class="pcard-bd">
+          <h3 class="pcard-tt"><a href="${o.id}.html">${esc(nombreProducto(o))}</a></h3>
+          <p class="pcard-meta">${PORID[o.eq].tipo === 'seleccion' ? 'Selección' : 'Club'} · ${esShort(o) ? 'Versión jugador' : 'Retro'}</p>
+          <p class="pcard-price">Consultar precio</p>
+          <a class="btn btn-dark btn-sm btn-block" href="${o.id}.html">VER</a>
+        </div>
+      </article>`).join('\n')}
+    </div>
+  </div>
+</section>`;
+  }
+
+  function fichaProducto(p) {
+    const e = PORID[p.eq];
+    const nom = nombreProducto(p);
+    const tipoEq = e.tipo === 'seleccion' ? 'Selección' : 'Club';
+    const msg = `Hola, estoy interesado en: ${prenda(p)} ${nom}.`;
+
+    const descripcion = esShort(p)
+      ? `Pantaloneta de fútbol de ${e.n}${p.t ? `, temporada ${p.t}` : ''}${p.v ? `, versión ${p.v.toLowerCase()}` : ''}. Versión jugador.`
+      : `Camiseta retro de ${e.n}${p.t ? `, temporada ${p.t}` : ''}${p.v && p.v !== 'Retro' ? `, versión ${p.v.toLowerCase()}` : ''}.`;
+
+    const main = `<nav class="crumbs" aria-label="Ruta">
+  <div class="wrap">
+    <a href="../index.html">Inicio</a> <span>/</span>
+    <a href="../catalogo.html">Catálogo</a> <span>/</span>
+    <a href="../catalogo.html?eq=${e.id}">${esc(e.n)}</a> <span>/</span>
+    <b>${esc(nom)}</b>
+  </div>
+</nav>
+
+<section class="pdp">
+  <div class="wrap pdp-in">
+    ${galeria(p)}
+
+    <div class="pdp-compra">
+      <p class="pdp-marca">${esc(e.n)}</p>
+      <h1 class="pdp-tt">${esc(tituloLargo(p))}</h1>
+      <p class="pdp-vendedor">Vendido y entregado por <b>TiendaDeportivaSV</b> · Villavicencio</p>
+
+      <p class="pdp-precio">Consultar precio</p>
+      <p class="pdp-nota">Te confirmamos precio y disponibilidad por WhatsApp.</p>
+
+      <div class="pdp-tallas">
+        <div class="pdp-tallas-hd">
+          <span>TALLA</span>
+          <a href="../tallas.html">Ver tabla de tallas</a>
+        </div>
+        <div class="tallas-grid" role="group" aria-label="Escoge tu talla">
+          ${TALLAS.map((t) => `<button type="button" class="talla" data-talla="${t}">${t}</button>`).join('\n          ')}
+        </div>
+        <small>Escoge una talla y la incluimos en el mensaje. Confirmamos existencias al escribirnos.</small>
+      </div>
+
+      <a class="btn btn-wa btn-lg btn-block pdp-cta" id="pdp-pedir"
+         data-msg="${esc(msg)}" href="${wa(msg + ' ¿Está disponible?')}" target="_blank" rel="noopener">
+        ${CTA_WA}PEDIR POR WHATSAPP
+      </a>
+      <a class="btn btn-line btn-block" href="${wa(`Hola, ¿tienen más fotos o detalles de: ${prenda(p)} ${nom}?`)}" target="_blank" rel="noopener">PEDIR MÁS FOTOS</a>
+
+      <ul class="pdp-plus">
+        <li>Atención por WhatsApp</li>
+        <li>Entrega inmediata en referencias disponibles</li>
+        <li>También trabajamos bajo pedido</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec sec-grey">
+  <div class="wrap pdp-abajo">
+    <div>
+      <h2 class="pdp-h2">DETALLES DEL PRODUCTO</h2>
+      <p class="pdp-desc">${esc(descripcion)}</p>
+      <dl class="pdp-specs">
+        <dt>Equipo</dt><dd>${esc(e.n)}</dd>
+        <dt>Tipo</dt><dd>${tipoEq}</dd>
+        ${p.t ? `<dt>Temporada</dt><dd>${esc(p.t)}</dd>` : ''}
+        ${p.v ? `<dt>Versión</dt><dd>${esc(p.v)}</dd>` : ''}
+        <dt>Prenda</dt><dd>${prenda(p)}${esShort(p) ? ' versión jugador' : ' retro'}</dd>
+        <dt>Disponibilidad</dt><dd>Consultar por WhatsApp</dd>
+      </dl>
+    </div>
+    <div>
+      <h2 class="pdp-h2">BUSCAR MÁS</h2>
+      <div class="pdp-chips">
+        <a href="../catalogo.html?eq=${e.id}">${esc(e.n)}</a>
+        <a href="../catalogo.html?q=${encodeURIComponent(p.t || '')}">${esc(p.t || 'Retro')}</a>
+        <a href="../catalogo.html">${esShort(p) ? 'Pantalonetas' : 'Camisetas retro'}</a>
+        <a href="../bajo-pedido.html">Bajo pedido</a>
+      </div>
+
+      <h2 class="pdp-h2" style="margin-top:32px">CÓMO PEDIR</h2>
+      <ol class="pdp-pasos">
+        <li>Escoge tu talla y toca «Pedir por WhatsApp».</li>
+        <li>Te confirmamos precio, disponibilidad y tiempo de entrega.</li>
+        <li>Coordinamos el pago y el envío por el mismo chat.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+${relacionados(p)}`;
+
+    const desc = `${descripcion} Pide por WhatsApp en TiendaDeportivaSV, Villavicencio.`;
+    return pagina({
+      archivo: `p/${p.id}.html`,
+      titulo: `${tituloLargo(p)} | TiendaDeportivaSV`,
+      descripcion: desc,
+      actual: 'catalogo.html',
+      base: '../',
+      imagen: `https://tiendadeportivasv.com/assets/catalogo/${p.img}-1-600.webp`,
+      main
+    });
+  }
+
+  let peso = 0;
+  for (const p of CAT.productos) {
+    const html = fichaProducto(p);
+    fs.writeFileSync(path.join(dirP, `${p.id}.html`), html, 'utf8');
+    peso += Buffer.byteLength(html);
+  }
+  console.log(`p/*.html  ${CAT.productos.length} fichas · ${(peso / 1024 / 1024).toFixed(1)} MB`);
+
+  /* Sitemap con las 5 páginas + todas las fichas */
+  const urls = [
+    ['', 'weekly', '1.0'], ['catalogo.html', 'weekly', '0.9'],
+    ['bajo-pedido.html', 'monthly', '0.8'], ['tallas.html', 'yearly', '0.5'],
+    ['rastrear.html', 'yearly', '0.4']
+  ].map(([u, f, pr]) => `  <url><loc>https://tiendadeportivasv.com/${u}</loc><changefreq>${f}</changefreq><priority>${pr}</priority></url>`)
+    .concat(CAT.productos.map((p) =>
+      `  <url><loc>https://tiendadeportivasv.com/p/${p.id}.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`));
+
+  fs.writeFileSync(path.join(raiz, 'sitemap.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`, 'utf8');
+  console.log('sitemap.xml', urls.length, 'URLs');
+}
+
 console.log('listo');

@@ -33,9 +33,20 @@ Abre http://localhost:5260
 | `bajo-pedido.html` | Escoge un equipo y se despliegan sus camisetas |
 | `tallas.html` | Tabla de tallas orientativa y cómo medir |
 | `rastrear.html` | Formulario que abre WhatsApp con la consulta del pedido |
+| `p/<id>.html` | **Una ficha por producto** (205). Generadas desde el catálogo |
 
-El catálogo y las grillas de equipos **se generan solos** desde `assets/js/catalogo.js`
-(ver más abajo). Las páginas no llevan productos escritos a mano.
+El catálogo, las grillas de equipos y las fichas **se generan solos** desde
+`assets/js/catalogo.js` (ver más abajo). Las páginas no llevan productos escritos a mano.
+
+### Ficha de producto
+
+Tocar un producto ya **no abre WhatsApp directamente**: lleva a su ficha, con migas de pan,
+galería (frente y espalda), nombre, vendedor, precio, selector de talla, detalles, chips para
+seguir buscando y modelos relacionados. WhatsApp se abre desde ahí, y **la talla escogida se
+incluye en el mensaje**.
+
+Cada ficha es una página real: se puede compartir por WhatsApp o Instagram, el botón atrás
+funciona y Google la indexa (las 205 están en el `sitemap.xml`).
 
 ## Estructura
 
@@ -44,7 +55,8 @@ index.html                 Portada. Es la FUENTE del encabezado, la cinta y el p
 catalogo.html              \
 bajo-pedido.html            | Generadas por build-pages.js — no las edites a mano
 tallas.html                 |
-rastrear.html              /
+rastrear.html               |
+p/*.html                   /  205 fichas de producto
 assets/css/styles.css      Estilos (el CSS crítico va en línea dentro de cada página)
 assets/js/app.js           Loader, menú, catálogo, paneles de equipo, reveal
 assets/js/catalogo.js      GENERADO: equipos y productos (no editar a mano)
@@ -122,7 +134,11 @@ Para publicarlos hay dos sitios:
 - **Catálogo y paneles de equipo** → en `assets/js/app.js`, el texto `Consultar precio`
   dentro de `tarjetaProducto()` y `tarjetaModelo()`. Si los precios varían por producto,
   añade un campo `precio` en `build-catalogo.js` y léelo aquí.
+- **Fichas de producto** → en `build-pages.js`, el `<p class="pdp-precio">` de
+  `fichaProducto()`. Ahí también está el selector de tallas (`TALLAS`).
 - **Portada** → los cuatro `<p class="pcard-price">` de `index.html`.
+
+Tras cambiarlo, ejecuta `node build-pages.js` para regenerar las 205 fichas.
 
 ### 2. Destacar un producto
 

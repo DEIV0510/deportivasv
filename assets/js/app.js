@@ -129,11 +129,12 @@
       return prenda + ' de ' + (e ? e.n : '') + (p.t ? ' temporada ' + p.t : '') +
              (p.v ? ' ' + p.v : '') + (cara === 2 ? ', vista por detrás' : '');
     }
-    function enlace(p) {
-      return WA + encodeURIComponent('Hola, estoy interesado en: ' + p.n + '. ¿Está disponible?');
-    }
+    // Las tarjetas llevan a la ficha del producto, no directo a WhatsApp.
+    // FICHA vale '' en la raíz y '../' dentro de p/.
+    var FICHA = location.pathname.indexOf('/p/') !== -1 ? '' : 'p/';
+    function enlace(p) { return FICHA + p.id + '.html'; }
     function foto(p, cara, clase, sizes) {
-      var b = IMG + p.img + '-' + cara;
+      var b = (FICHA ? '' : '../') + IMG + p.img + '-' + cara;
       return '<picture>' +
         '<source type="image/avif" srcset="' + b + '-340.avif 340w, ' + b + '-600.avif 600w" sizes="' + sizes + '">' +
         '<source type="image/webp" srcset="' + b + '-340.webp 340w, ' + b + '-600.webp 600w" sizes="' + sizes + '">' +
@@ -146,15 +147,15 @@
       var url = enlace(p);
       var sizes = '(min-width:1000px) 290px, (min-width:640px) 30vw, 45vw';
       return '<article class="pcard reveal">' +
-        '<a class="pcard-media" href="' + url + '" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">' +
+        '<a class="pcard-media" href="' + url + '" tabindex="-1" aria-hidden="true">' +
           foto(p, 1, 'im-a', sizes) +
           (p.f > 1 ? foto(p, 2, 'im-b', sizes) : '') +
         '</a>' +
         '<div class="pcard-bd">' +
-          '<h3 class="pcard-tt">' + esc(nombre(p)) + '</h3>' +
+          '<h3 class="pcard-tt"><a href="' + url + '">' + esc(nombre(p)) + '</a></h3>' +
           '<p class="pcard-meta">' + esc(detalle(p)) + '</p>' +
           '<p class="pcard-price">Consultar precio</p>' +
-          '<a class="btn btn-dark btn-sm btn-block" href="' + url + '" target="_blank" rel="noopener">PEDIR</a>' +
+          '<a class="btn btn-dark btn-sm btn-block" href="' + url + '">VER PRODUCTO</a>' +
         '</div></article>';
     }
 
@@ -163,14 +164,14 @@
       var url = enlace(p);
       var sizes = '(min-width:900px) 200px, 44vw';
       return '<article class="mcard">' +
-        '<a class="mcard-media" href="' + url + '" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">' +
+        '<a class="mcard-media" href="' + url + '" tabindex="-1" aria-hidden="true">' +
           foto(p, 1, 'im-a', sizes) +
         '</a>' +
         '<div class="mcard-bd">' +
-          '<h4>' + esc([p.t, p.v && p.v !== 'Retro' ? p.v : ''].filter(Boolean).join(' · ') || 'Retro') + '</h4>' +
+          '<h4><a href="' + url + '">' + esc([p.t, p.v && p.v !== 'Retro' ? p.v : ''].filter(Boolean).join(' · ') || 'Retro') + '</a></h4>' +
           '<p class="mcard-meta">' + esc(detalle(p)) + '</p>' +
           '<p class="mcard-estado ask">Consultar disponibilidad</p>' +
-          '<a class="btn btn-dark btn-sm btn-block" href="' + url + '" target="_blank" rel="noopener">PEDIR</a>' +
+          '<a class="btn btn-dark btn-sm btn-block" href="' + url + '">VER</a>' +
         '</div></article>';
     }
 
@@ -428,6 +429,42 @@
       if (params.get('q') && buscador) buscador.value = params.get('q');
       if (params.get('eq') && selEquipo) selEquipo.value = params.get('eq');
       refrescar();
+    }
+
+    /* ================= FICHA DE PRODUCTO ================= */
+    var visor = $('.pdp-visor');
+    if (visor) {
+      // Galería: la miniatura cambia la foto grande
+      var fotos = $$('.pdp-foto', visor);
+      $$('.pdp-mini').forEach(function (mini) {
+        mini.addEventListener('click', function () {
+          var cara = mini.dataset.cara;
+          $$('.pdp-mini').forEach(function (m) {
+            var on = m === mini;
+            m.classList.toggle('is-on', on);
+            m.setAttribute('aria-selected', String(on));
+          });
+          fotos.forEach(function (f) { f.classList.toggle('is-on', f.dataset.cara === cara); });
+        });
+      });
+
+      // Talla escogida: se añade al mensaje de WhatsApp
+      var pedir = document.getElementById('pdp-pedir');
+      var base = pedir ? pedir.dataset.msg : '';
+      var talla = '';
+      $$('.talla').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var mismo = b.classList.contains('is-on');
+          $$('.talla').forEach(function (o) { o.classList.remove('is-on'); });
+          if (!mismo) { b.classList.add('is-on'); talla = b.dataset.talla; }
+          else talla = '';
+          if (pedir) {
+            pedir.href = WA + encodeURIComponent(
+              base + (talla ? ' Talla ' + talla + '.' : '') + ' ¿Está disponible?'
+            );
+          }
+        });
+      });
     }
 
     /* ---------- Rastrear pedido -> WhatsApp ---------- */
