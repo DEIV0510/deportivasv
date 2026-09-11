@@ -60,12 +60,12 @@ p/*.html                   /  205 fichas de producto
 assets/css/styles.css      Estilos (el CSS crítico va en línea dentro de cada página)
 assets/js/app.js           Loader, menú, catálogo, paneles de equipo, reveal
 assets/js/catalogo.js      GENERADO: equipos y productos (no editar a mano)
-assets/catalogo/           GENERADO: fotos del catálogo en AVIF + WebP (340w y 600w)
+assets/catalogo/           GENERADO: fotos en AVIF + WebP (340w, 600w y grande cuadrada)
 assets/img/                Fotos de la portada, logo, pósters y og
 assets/video/              3 clips reales de la tienda (preload="none")
 assets/brand/              Logo original y foto base, para regenerar los assets
 build-catalogo.js          Lee la carpeta del cliente y genera catalogo.js + assets/catalogo
-build-pages.js             Genera las 4 páginas interiores
+build-pages.js             Genera las 4 páginas interiores + las 205 fichas + el sitemap
 build-images.js            Regenera assets/img desde las fotos de la portada
 build-logo.js              Regenera las piezas del logo
 serve.js                   Servidor estático de desarrollo
@@ -87,19 +87,20 @@ node build-pages.js
 
 ## Rendimiento
 
-Medido en local sobre la portada:
+Medido en local:
 
-| Métrica                    | Valor    |
-|----------------------------|----------|
-| Peticiones iniciales       | 21       |
-| Peso inicial transferido   | ~281 KB  |
-| First Contentful Paint     | ~124 ms  |
-| Bytes de video en la carga | 0        |
-| Catálogo                   | 205 productos · 38 equipos |
+| Métrica | Portada | Ficha de producto |
+|---|---|---|
+| Peticiones iniciales | 21 | 13 |
+| Peso transferido | ~288 KB | ~172 KB |
+| Bytes de video | 0 | 0 |
+
+Catálogo: **205 productos · 38 equipos · 367 fotos** (43,7 MB en 6 variantes por foto).
 
 Cómo se consigue:
 
-- Imágenes en AVIF con respaldo WebP, dos anchos (`340w` / `600w`) y `sizes` reales.
+- Imágenes en AVIF con respaldo WebP: `340w`/`600w` para tarjetas y una grande cuadrada
+  de 1100 px para el visor de la ficha, con `sizes` reales.
 - Foto del hero con `preload` + `imagesrcset` + `fetchpriority="high"`; el resto con `loading="lazy"`.
 - Videos con `preload="none"` y póster de marca: no descargan un solo byte hasta que se pulsa play.
 - CSS crítico en línea; los scripts con `defer` y sin dependencias.
@@ -184,6 +185,22 @@ SHORTS PLAYER/
 Dentro de cada carpeta de modelo, **la primera foto por orden alfabético es el frente y la
 segunda la espalda** (la segunda se muestra al pasar el mouse). Si hay más de dos, se usan
 las dos primeras.
+
+**Dos juegos de imágenes por foto** (esto importa para la nitidez):
+
+| Variante | Forma | Para qué |
+|---|---|---|
+| `-340`, `-600` | Marco vertical 3:4 | Tarjetas del catálogo, grillas y relacionados |
+| `-g` | Cuadrado 1100 px | Visor grande de la ficha de producto |
+
+La grande es **cuadrada y no 3:4** a propósito: el marco vertical arrastra una franja
+blanca que no se ve y duplica el peso del archivo. A 1100 px el visor se ve nítido en
+pantallas retina (520 CSS px × 2 = 1040 píxeles reales).
+
+> **Regla para no repetir un error que ya cometimos:** si muestras una foto más grande
+> que antes, comprueba que el archivo servido tenga **al menos el doble** de píxeles que
+> su tamaño en pantalla. Si no, el navegador la estira y se ve blanda aunque el original
+> sea excelente.
 
 **Lo que el script hace solo:**
 

@@ -527,9 +527,11 @@ td{color:var(--ink-2);font-variant-numeric:tabular-nums}
 .pdp-mini:hover{box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)}
 .pdp-mini.is-on{box-shadow:inset 0 0 0 2px var(--ink)}
 
+/* Cuadrado: es la proporción en la que vienen las fotos de producto, así la
+   prenda ocupa todo el ancho sin franjas blancas que no aportan nada. */
 .pdp-visor{
   position:relative;background:var(--bg-2);border-radius:var(--r);overflow:hidden;
-  aspect-ratio:3/4;box-shadow:var(--shadow);
+  aspect-ratio:1/1;box-shadow:var(--shadow);
 }
 .pdp-foto{position:absolute;inset:0;opacity:0;transition:opacity .3s var(--ease)}
 .pdp-foto.is-on{opacity:1}

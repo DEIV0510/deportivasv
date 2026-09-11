@@ -23,9 +23,17 @@ const RAIZ = process.argv.slice(2).find(a => !a.startsWith('--')) || 'C:/Users/L
 const OUT_IMG = path.join(__dirname, 'assets', 'catalogo');
 const OUT_JS = path.join(__dirname, 'assets', 'js', 'catalogo.js');
 
+/* Dos juegos de imágenes con propósitos distintos:
+   - TARJETAS: marco vertical 3:4, anchos pequeños. Para el catálogo y las grillas.
+   - GRANDE:   lienzo cuadrado de 1100 px para el visor de la ficha de producto.
+               Cuadrado y no 3:4 porque el marco vertical arrastra una franja
+               blanca que no se ve y duplica el peso del archivo.
+   A 1100 px el visor se ve nítido en pantallas retina (520 CSS px x2 = 1040). */
 const WIDTHS = [340, 600];
+const GRANDE = 1100;
 const RATIO = 4 / 3;    // marco vertical del catálogo
 const MARGEN = 0.06;    // aire alrededor de la prenda
+const MARGEN_G = 0.03;  // en la grande el aire lo pone el propio visor
 const MAX_FOTOS = 2;    // frente y espalda
 
 /* Carpetas que solo agrupan y no son un equipo */
@@ -194,6 +202,7 @@ async function generar(origen, destinoBase) {
     recortada = await sharp(plana).trim({ threshold: 8 }).toBuffer();
   } catch { recortada = plana; }
 
+  // Tarjetas: marco vertical 3:4
   for (const w of WIDTHS) {
     const alto = Math.round(w * RATIO);
     const encajada = await sharp(recortada)
@@ -206,9 +215,23 @@ async function generar(origen, destinoBase) {
     const lienzo = await sharp(encajada)
       .resize({ width: w, height: alto, fit: 'contain', background: '#ffffff' })
       .toBuffer();
-    await sharp(lienzo).webp({ quality: 80, effort: 5 }).toFile(`${destinoBase}-${w}.webp`);
-    await sharp(lienzo).avif({ quality: 58, effort: 5 }).toFile(`${destinoBase}-${w}.avif`);
+    await sharp(lienzo).webp({ quality: 82, effort: 5 }).toFile(`${destinoBase}-${w}.webp`);
+    await sharp(lienzo).avif({ quality: 62, effort: 5 }).toFile(`${destinoBase}-${w}.avif`);
   }
+
+  // Visor de la ficha: cuadrado grande. No se amplía si el original es menor.
+  const meta = await sharp(recortada).metadata();
+  const ladoUtil = Math.round(GRANDE * (1 - MARGEN_G * 2));
+  const cabe = Math.max(meta.width, meta.height) >= ladoUtil;
+  const lado = cabe ? GRANDE : Math.round(Math.max(meta.width, meta.height) / (1 - MARGEN_G * 2));
+  const encG = await sharp(recortada)
+    .resize({ width: Math.round(lado * (1 - MARGEN_G * 2)), height: Math.round(lado * (1 - MARGEN_G * 2)), fit: 'inside', withoutEnlargement: true })
+    .toBuffer();
+  const lienzoG = await sharp(encG)
+    .resize({ width: lado, height: lado, fit: 'contain', background: '#ffffff' })
+    .toBuffer();
+  await sharp(lienzoG).webp({ quality: 80, effort: 5 }).toFile(`${destinoBase}-g.webp`);
+  await sharp(lienzoG).avif({ quality: 58, effort: 5 }).toFile(`${destinoBase}-g.avif`);
 }
 
 /* ---------------- Recorrido ---------------- */

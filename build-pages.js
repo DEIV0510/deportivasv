@@ -7,6 +7,7 @@
 */
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
 
 const raiz = __dirname;
 const index = fs.readFileSync(path.join(raiz, 'index.html'), 'utf8');
@@ -29,7 +30,7 @@ const wa = (t) => WA + encodeURIComponent(t);
 /* ---------------- Plantilla común ----------------
    `base` antepone '../' a las rutas cuando la página vive en una subcarpeta
    (las fichas de producto están en p/). */
-function pagina({ archivo, titulo, descripcion, actual, main, base = '', imagen }) {
+function pagina({ archivo, titulo, descripcion, actual, main, base = '', imagen, jsonld = '' }) {
   let cabeza = CABEZA
     .replace('<a href="index.html" aria-current="page">Inicio</a>', '<a href="index.html">Inicio</a>')
     .replace(`<a href="${actual}">`, `<a href="${actual}" aria-current="page">`);
@@ -77,7 +78,7 @@ function pagina({ archivo, titulo, descripcion, actual, main, base = '', imagen 
 
 ${critico}
 <link rel="stylesheet" href="${base}assets/css/styles.css">
-</head>
+${jsonld}</head>
 <body>
 
 ${loader}
@@ -397,6 +398,12 @@ if (!fs.existsSync(catalogoJs)) {
   const tituloLargo = (p) =>
     `${prenda(p)} ${esShort(p) ? 'versión jugador' : 'de fútbol'} ${nombreProducto(p)}`;
 
+  /* Tamaño real de cada foto grande. No todos los originales llegan a 1100 px y
+     no se amplían, así que el width/height del HTML se lee del archivo.
+     Se rellena antes de generar las fichas (ver «precalcular» más abajo). */
+  const ladoG = {};
+  const lado = (img, cara) => ladoG[`${img}-${cara}`] || 1100;
+
   function galeria(p) {
     const caras = [];
     for (let i = 1; i <= p.f; i++) caras.push(i);
@@ -404,11 +411,12 @@ if (!fs.existsSync(catalogoJs)) {
     const altTxt = (i) =>
       `${tituloLargo(p)}${i === 2 ? ', vista por detrás' : ''}`;
 
+    /* El visor usa la variante grande (-g, cuadrada de 1100 px): a 520 CSS px
+       de ancho hace falta el doble de píxeles en pantallas retina. */
     const grande = caras.map((i) => `
         <picture class="pdp-foto${i === 1 ? ' is-on' : ''}" data-cara="${i}">
-          <source type="image/avif" srcset="${src(i, 340, 'avif')} 340w, ${src(i, 600, 'avif')} 600w" sizes="(min-width:900px) 520px, 92vw">
-          <source type="image/webp" srcset="${src(i, 340, 'webp')} 340w, ${src(i, 600, 'webp')} 600w" sizes="(min-width:900px) 520px, 92vw">
-          <img src="${src(i, 600, 'webp')}" width="600" height="800" ${i === 1 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" alt="${esc(altTxt(i))}">
+          <source type="image/avif" srcset="${src(i, 'g', 'avif')}">
+          <img src="${src(i, 'g', 'webp')}" width="${lado(p.img, i)}" height="${lado(p.img, i)}" ${i === 1 ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" alt="${esc(altTxt(i))}">
         </picture>`).join('');
 
     const minis = caras.length > 1 ? `
@@ -437,8 +445,9 @@ if (!fs.existsSync(catalogoJs)) {
 ${lista.map((o) => `      <article class="pcard reveal">
         <a class="pcard-media" href="${o.id}.html">
           <picture>
-            <source type="image/avif" srcset="../assets/catalogo/${o.img}-1-340.avif">
-            <img src="../assets/catalogo/${o.img}-1-340.webp" width="600" height="800" loading="lazy" decoding="async" alt="${esc(tituloLargo(o))}">
+            <source type="image/avif" srcset="../assets/catalogo/${o.img}-1-340.avif 340w, ../assets/catalogo/${o.img}-1-600.avif 600w" sizes="(min-width:1000px) 290px, (min-width:640px) 30vw, 45vw">
+            <source type="image/webp" srcset="../assets/catalogo/${o.img}-1-340.webp 340w, ../assets/catalogo/${o.img}-1-600.webp 600w" sizes="(min-width:1000px) 290px, (min-width:640px) 30vw, 45vw">
+            <img src="../assets/catalogo/${o.img}-1-600.webp" width="600" height="800" loading="lazy" decoding="async" alt="${esc(tituloLargo(o))}">
           </picture>
         </a>
         <div class="pcard-bd">
@@ -546,24 +555,72 @@ ${lista.map((o) => `      <article class="pcard reveal">
 ${relacionados(p)}`;
 
     const desc = `${descripcion} Pide por WhatsApp en TiendaDeportivaSV, Villavicencio.`;
+    const RAIZ_URL = 'https://tiendadeportivasv.com/';
+    const fotos = [];
+    for (let i = 1; i <= p.f; i++) fotos.push(`${RAIZ_URL}assets/catalogo/${p.img}-${i}-g.webp`);
+
+    /* Datos estructurados: solo hechos comprobables. Sin precio ni existencias,
+       porque la tienda no los publica todavía. */
+    const jsonld = `<script type="application/ld+json">
+${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Product',
+          name: tituloLargo(p),
+          description: descripcion,
+          image: fotos,
+          category: esShort(p) ? 'Pantalonetas de fútbol' : 'Camisetas de fútbol retro',
+          brand: { '@type': 'Brand', name: e.n },
+          sku: p.id,
+          seller: { '@type': 'Organization', name: 'TiendaDeportivaSV' }
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Inicio', item: RAIZ_URL },
+            { '@type': 'ListItem', position: 2, name: 'Catálogo', item: `${RAIZ_URL}catalogo.html` },
+            { '@type': 'ListItem', position: 3, name: e.n, item: `${RAIZ_URL}catalogo.html?eq=${e.id}` },
+            { '@type': 'ListItem', position: 4, name: nom, item: `${RAIZ_URL}p/${p.id}.html` }
+          ]
+        }
+      ]
+    }, null, 0)}
+</script>
+`;
+
     return pagina({
       archivo: `p/${p.id}.html`,
       titulo: `${tituloLargo(p)} | TiendaDeportivaSV`,
       descripcion: desc,
       actual: 'catalogo.html',
       base: '../',
-      imagen: `https://tiendadeportivasv.com/assets/catalogo/${p.img}-1-600.webp`,
+      imagen: `${RAIZ_URL}assets/catalogo/${p.img}-1-g.webp`,
+      jsonld,
       main
     });
   }
 
-  let peso = 0;
-  for (const p of CAT.productos) {
-    const html = fichaProducto(p);
-    fs.writeFileSync(path.join(dirP, `${p.id}.html`), html, 'utf8');
-    peso += Buffer.byteLength(html);
-  }
-  console.log(`p/*.html  ${CAT.productos.length} fichas · ${(peso / 1024 / 1024).toFixed(1)} MB`);
+  // precalcular: mide cada foto grande una sola vez
+  (async () => {
+    for (const p of CAT.productos) {
+      for (let i = 1; i <= p.f; i++) {
+        const f = path.join(raiz, 'assets', 'catalogo', `${p.img}-${i}-g.webp`);
+        try { ladoG[`${p.img}-${i}`] = (await sharp(f).metadata()).width; } catch { /* usa 1100 */ }
+      }
+    }
+
+    let peso = 0;
+    for (const p of CAT.productos) {
+      const html = fichaProducto(p);
+      fs.writeFileSync(path.join(dirP, `${p.id}.html`), html, 'utf8');
+      peso += Buffer.byteLength(html);
+    }
+    console.log(`p/*.html  ${CAT.productos.length} fichas · ${(peso / 1024 / 1024).toFixed(1)} MB`);
+    const distintos = [...new Set(Object.values(ladoG))].sort((a, b) => a - b);
+    console.log(`          anchos reales de la foto grande: ${distintos[0]}–${distintos[distintos.length - 1]} px`);
+    console.log('listo');
+  })();
 
   /* Sitemap con las 5 páginas + todas las fichas */
   const urls = [
@@ -579,4 +636,4 @@ ${relacionados(p)}`;
   console.log('sitemap.xml', urls.length, 'URLs');
 }
 
-console.log('listo');
+
