@@ -93,6 +93,7 @@ ${main}
 ${pie}
 
 <script src="${base}assets/js/catalogo.js" defer></script>
+<script src="${base}assets/js/escudos.js" defer></script>
 <script src="${base}assets/js/app.js" defer></script>
 </body>
 </html>

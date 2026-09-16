@@ -1,0 +1,2 @@
+/* GENERADO POR build-escudos.js — no editar a mano. */
+window.SV_ESCUDOS = ["ac-milan","ajax","al-hilal","alemania","argentina","arsenal","atletico-de-madrid","barcelona","bayern-munich","belgica","boca-juniors","borussia-dortmund","brasil","chelsea","colombia","corinthians","espana","fiorentina","flamengo","francia","inglaterra","inter-de-milan","italia","japon","juventus","lazio","liverpool","manchester-city","manchester-united","newcastle","paises-bajos","paris-saint-germain","portugal","real-madrid","river-plate","roma","santos","sporting"];

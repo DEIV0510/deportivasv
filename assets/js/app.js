@@ -181,12 +181,31 @@
       return CAT.productos.filter(function (p) { return p.eq === e.id; });
     }
 
+    // Escudo real si el equipo lo tiene (ESCUDOS, generado por build-escudos.js);
+    // si no, el llamador cae al monograma de colores de siempre. Los escudos
+    // son marcas oficiales de terceros: se usan aquí por decisión explícita
+    // del cliente sobre el sistema de colores + iniciales que tenía el sitio.
+    var ESCUDOS = window.SV_ESCUDOS || [];
+    var RUTA_ESCUDOS = (FICHA ? '' : '../') + 'assets/escudos/';
+    function tieneEscudo(id) { return ESCUDOS.indexOf(id) !== -1; }
+    function escudoImg(id, nombre, tam) {
+      var b = RUTA_ESCUDOS + id;
+      return '<picture>' +
+        '<source type="image/avif" srcset="' + b + '-160.avif 160w, ' + b + '-320.avif 320w" sizes="' + tam + 'px">' +
+        '<source type="image/webp" srcset="' + b + '-160.webp 160w, ' + b + '-320.webp 320w" sizes="' + tam + 'px">' +
+        '<img src="' + b + '-160.webp" width="160" height="160" loading="lazy" decoding="async" alt="Escudo de ' + esc(nombre) + '">' +
+        '</picture>';
+    }
+
     function tarjetaEquipo(e, i) {
       var n = modelosDe(e).length;
+      var marca = tieneEscudo(e.id)
+        ? '<span class="tcard-escudo">' + escudoImg(e.id, e.n, 64) + '</span>'
+        : '<span class="tcard-mark" aria-hidden="true">' + esc(e.s) + '</span>';
       return '<button type="button" class="tcard reveal" data-eq="' + i + '"' +
              ' style="--c1:' + e.c[0] + ';--c2:' + e.c[1] + ';--c3:' + e.c[2] + '"' +
              ' aria-expanded="false">' +
-             '<span class="tcard-mark" aria-hidden="true">' + esc(e.s) + '</span>' +
+             marca +
              '<b>' + esc(e.n) + '</b>' +
              '<i>' + (n ? n + (n === 1 ? ' modelo' : ' modelos') : 'Bajo pedido') + '</i>' +
              '<span class="tcard-go" aria-hidden="true">+</span></button>';
@@ -208,7 +227,9 @@
       return '<div class="tpanel" role="region" aria-label="Camisetas de ' + esc(e.n) + '">' +
         '<div class="tpanel-in">' +
           '<div class="tpanel-hd">' +
-            '<span class="tpanel-mark" style="--c1:' + e.c[0] + ';--c2:' + e.c[1] + ';--c3:' + e.c[2] + '" aria-hidden="true">' + esc(e.s) + '</span>' +
+            '<span class="tpanel-mark" style="--c1:' + e.c[0] + ';--c2:' + e.c[1] + ';--c3:' + e.c[2] + '">' +
+              (tieneEscudo(e.id) ? escudoImg(e.id, e.n, 44) : '<span aria-hidden="true">' + esc(e.s) + '</span>') +
+            '</span>' +
             '<div class="tpanel-tt">' +
               '<p class="kicker">' + (e.tipo === 'seleccion' ? 'SELECCIÓN' : 'CLUB') + '</p>' +
               '<h3>' + esc(e.n) + '</h3>' +

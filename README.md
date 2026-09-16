@@ -60,11 +60,14 @@ p/*.html                   /  205 fichas de producto
 assets/css/styles.css      Estilos (el CSS crítico va en línea dentro de cada página)
 assets/js/app.js           Loader, menú, catálogo, paneles de equipo, reveal
 assets/js/catalogo.js      GENERADO: equipos y productos (no editar a mano)
+assets/js/escudos.js       GENERADO: qué equipos tienen escudo real (no editar a mano)
 assets/catalogo/           GENERADO: fotos en AVIF + WebP (340w, 600w y grande cuadrada)
+assets/escudos/            GENERADO: escudos oficiales en AVIF + WebP (160w, 320w, sin fondo)
 assets/img/                Fotos de la portada, logo, pósters y og
 assets/video/              3 clips reales de la tienda (preload="none")
-assets/brand/              Logo original y foto base, para regenerar los assets
+assets/brand/              Logo y escudos originales, para regenerar los assets
 build-catalogo.js          Lee la carpeta del cliente y genera catalogo.js + assets/catalogo
+build-escudos.js           Genera assets/escudos + escudos.js desde assets/brand/escudos-raw
 build-pages.js             Genera las 4 páginas interiores + las 205 fichas + el sitemap
 build-images.js            Regenera assets/img desde las fotos de la portada
 build-logo.js              Regenera las piezas del logo
@@ -126,6 +129,31 @@ El logo oficial vive en `assets/img/` en cuatro variantes, generadas desde el PN
 | `favicon-sv.png` | Favicon y apple-touch-icon |
 
 Si cambias el logo, regenera todo con `node build-logo.js`.
+
+## Escudos de equipo
+
+Las tarjetas de "Bajo pedido" (y el adelanto de la portada) muestran el **escudo oficial**
+de cada equipo en vez del monograma de colores. Son marcas de terceros — se usan aquí por
+decisión explícita del cliente, no por defecto: el sitio empezó sin ellas, solo con colores
++ iniciales, precisamente para no usar marcas oficiales en una tienda de camisetas no
+licenciadas. Si algún día hace falta volver a esa versión, basta con no generar
+`assets/js/escudos.js` (o vaciarlo) — el JS ya sabe caer al monograma cuando un equipo no
+aparece ahí.
+
+```bash
+node build-escudos.js
+```
+
+Lee `assets/brand/escudos-raw/<id>.{svg,jpg}` (originales versionados, uno por equipo,
+mismo slug que usan `catalogo.js` y `equipos.js`) y genera `assets/escudos/<id>-{160,320}.
+{webp,avif}` con transparencia real (sin fondo) y `assets/js/escudos.js`, la lista de qué
+equipos tienen escudo. 37 de los 38 son vectores (se rasterizan a la resolución que haga
+falta, sin techo de calidad); Paris Saint-Germain es el único raster y se queda en su
+tamaño nativo (64 px) porque no se encontró en vector — nunca se amplía.
+
+Para añadir el escudo de un equipo nuevo: coloca `assets/brand/escudos-raw/<id>.svg` (el
+`id` tiene que ser el mismo slug que ya usa ese equipo en el catálogo) y corre el comando
+de arriba.
 
 ## Cosas que hay que editar cuando cambie el negocio
 
