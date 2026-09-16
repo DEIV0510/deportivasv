@@ -41,8 +41,8 @@ const MARGEN = 0.05;   // aire alrededor de la prenda
 async function guardar(buf, name, w, report) {
   const webp = path.join(OUT, `${name}-${w}.webp`);
   const avif = path.join(OUT, `${name}-${w}.avif`);
-  await sharp(buf).webp({ quality: 80, effort: 6 }).toFile(webp);
-  await sharp(buf).avif({ quality: 58, effort: 6 }).toFile(avif);
+  await sharp(buf).webp({ quality: 94, effort: 6 }).toFile(webp);
+  await sharp(buf).avif({ quality: 76, effort: 6 }).toFile(avif);
   report.push([path.basename(webp), fs.statSync(webp).size, path.basename(avif), fs.statSync(avif).size]);
 }
 
@@ -92,7 +92,7 @@ async function guardar(buf, name, w, report) {
   // Imagen para redes (1200x630 sobre negro); build-logo.js la vuelve a generar con el logo
   await sharp({ create: { width: 1200, height: 630, channels: 3, background: '#000000' } })
     .composite([{ input: await sharp(path.join(SRC, 'chelsea.png')).resize({ height: 630 }).toBuffer(), gravity: 'east' }])
-    .jpeg({ quality: 82 })
+    .jpeg({ quality: 94, mozjpeg: true })
     .toFile(path.join(OUT, 'og-tiendadeportivasv.jpg'));
 
   let total = 0;

@@ -25,12 +25,16 @@ const OUT_JS = path.join(__dirname, 'assets', 'js', 'catalogo.js');
 
 /* Dos juegos de imágenes con propósitos distintos:
    - TARJETAS: marco vertical 3:4, anchos pequeños. Para el catálogo y las grillas.
-   - GRANDE:   lienzo cuadrado de 1100 px para el visor de la ficha de producto.
+   - GRANDE:   lienzo cuadrado de 1600 px para el visor de la ficha de producto.
                Cuadrado y no 3:4 porque el marco vertical arrastra una franja
                blanca que no se ve y duplica el peso del archivo.
-   A 1100 px el visor se ve nítido en pantallas retina (520 CSS px x2 = 1040). */
+   1600 px cubre con margen cualquier pantalla real (retina de escritorio y
+   DPR3 de celular) sin pasarse: el 55% del catálogo ya tiene resolución
+   nativa para llegar ahí; el resto sirve su propio máximo real sin estirarse
+   (nunca se amplía). Calidad de compresión al máximo razonable — AVIF/WebP
+   altos y máximo esfuerzo de codificación — en las tres variantes. */
 const WIDTHS = [340, 600];
-const GRANDE = 1100;
+const GRANDE = 1600;
 const RATIO = 4 / 3;    // marco vertical del catálogo
 const MARGEN = 0.06;    // aire alrededor de la prenda
 const MARGEN_G = 0.03;  // en la grande el aire lo pone el propio visor
@@ -215,8 +219,8 @@ async function generar(origen, destinoBase) {
     const lienzo = await sharp(encajada)
       .resize({ width: w, height: alto, fit: 'contain', background: '#ffffff' })
       .toBuffer();
-    await sharp(lienzo).webp({ quality: 82, effort: 5 }).toFile(`${destinoBase}-${w}.webp`);
-    await sharp(lienzo).avif({ quality: 62, effort: 5 }).toFile(`${destinoBase}-${w}.avif`);
+    await sharp(lienzo).webp({ quality: 92, effort: 6 }).toFile(`${destinoBase}-${w}.webp`);
+    await sharp(lienzo).avif({ quality: 74, effort: 6 }).toFile(`${destinoBase}-${w}.avif`);
   }
 
   // Visor de la ficha: cuadrado grande. No se amplía si el original es menor.
@@ -230,8 +234,8 @@ async function generar(origen, destinoBase) {
   const lienzoG = await sharp(encG)
     .resize({ width: lado, height: lado, fit: 'contain', background: '#ffffff' })
     .toBuffer();
-  await sharp(lienzoG).webp({ quality: 80, effort: 5 }).toFile(`${destinoBase}-g.webp`);
-  await sharp(lienzoG).avif({ quality: 58, effort: 5 }).toFile(`${destinoBase}-g.avif`);
+  await sharp(lienzoG).webp({ quality: 94, effort: 6 }).toFile(`${destinoBase}-g.webp`);
+  await sharp(lienzoG).avif({ quality: 76, effort: 6 }).toFile(`${destinoBase}-g.avif`);
 }
 
 /* ---------------- Recorrido ---------------- */

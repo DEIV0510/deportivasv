@@ -87,20 +87,24 @@ node build-pages.js
 
 ## Rendimiento
 
-Medido en local:
+Catálogo: **205 productos · 38 equipos · 367 fotos** (134 MB en `assets/catalogo/`, 6 variantes por foto).
 
-| Métrica | Portada | Ficha de producto |
-|---|---|---|
-| Peticiones iniciales | 21 | 13 |
-| Peso transferido | ~288 KB | ~172 KB |
-| Bytes de video | 0 | 0 |
+La foto del visor pesa más de lo que pesaba antes — es la decisión explícita de priorizar
+calidad máxima sobre peso mínimo para esa imagen concreta (una foto de producto a 1600 px
+y calidad casi sin pérdida pesa lo que pesa; en Barcelona 1998-1999, por ejemplo, 136 KB
+en AVIF). El resto de la página sigue ligero:
 
-Catálogo: **205 productos · 38 equipos · 367 fotos** (43,7 MB en 6 variantes por foto).
+| Recurso | Peso |
+|---|---|
+| `styles.css` | 33 KB |
+| `app.js` | 21 KB |
+| `catalogo.js` (205 productos + 38 equipos) | 36 KB |
+| Foto principal del visor (AVIF, varía por foto) | 30–230 KB |
 
-Cómo se consigue:
+Cómo se mantiene rápido a pesar de eso:
 
 - Imágenes en AVIF con respaldo WebP: `340w`/`600w` para tarjetas y una grande cuadrada
-  de 1100 px para el visor de la ficha, con `sizes` reales.
+  de hasta 1600 px para el visor de la ficha, con `sizes` reales y calidad al máximo.
 - Foto del hero con `preload` + `imagesrcset` + `fetchpriority="high"`; el resto con `loading="lazy"`.
 - Videos con `preload="none"` y póster de marca: no descargan un solo byte hasta que se pulsa play.
 - CSS crítico en línea; los scripts con `defer` y sin dependencias.
@@ -191,11 +195,18 @@ las dos primeras.
 | Variante | Forma | Para qué |
 |---|---|---|
 | `-340`, `-600` | Marco vertical 3:4 | Tarjetas del catálogo, grillas y relacionados |
-| `-g` | Cuadrado 1100 px | Visor grande de la ficha de producto |
+| `-g` | Cuadrado hasta 1600 px | Visor grande de la ficha de producto |
 
 La grande es **cuadrada y no 3:4** a propósito: el marco vertical arrastra una franja
-blanca que no se ve y duplica el peso del archivo. A 1100 px el visor se ve nítido en
-pantallas retina (520 CSS px × 2 = 1040 píxeles reales).
+blanca que no se ve y duplica el peso del archivo. 1600 px cubre con margen cualquier
+pantalla real (retina de escritorio y DPR3 de celular). **Nunca se amplía**: si el
+original no llega, la foto se sirve en su propio máximo real — el `width`/`height`
+del HTML se lee del archivo generado, nunca se da por supuesto.
+
+Calidad de compresión al máximo razonable en las tres variantes: WebP 92 (94 en la
+grande), AVIF 74 (76 en la grande), esfuerzo de codificación al tope (6). Lo mismo en
+`build-images.js` y `build-logo.js` para las fotos de portada, el OG y los pósters
+de video — ninguna imagen del sitio se queda con la calidad de compresión por defecto.
 
 > **Regla para no repetir un error que ya cometimos:** si muestras una foto más grande
 > que antes, comprueba que el archivo servido tenga **al menos el doble** de píxeles que

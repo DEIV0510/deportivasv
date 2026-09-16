@@ -398,11 +398,11 @@ if (!fs.existsSync(catalogoJs)) {
   const tituloLargo = (p) =>
     `${prenda(p)} ${esShort(p) ? 'versión jugador' : 'de fútbol'} ${nombreProducto(p)}`;
 
-  /* Tamaño real de cada foto grande. No todos los originales llegan a 1100 px y
+  /* Tamaño real de cada foto grande. No todos los originales llegan a 1600 px y
      no se amplían, así que el width/height del HTML se lee del archivo.
      Se rellena antes de generar las fichas (ver «precalcular» más abajo). */
   const ladoG = {};
-  const lado = (img, cara) => ladoG[`${img}-${cara}`] || 1100;
+  const lado = (img, cara) => ladoG[`${img}-${cara}`] || 1600;
 
   function galeria(p) {
     const caras = [];
@@ -411,8 +411,8 @@ if (!fs.existsSync(catalogoJs)) {
     const altTxt = (i) =>
       `${tituloLargo(p)}${i === 2 ? ', vista por detrás' : ''}`;
 
-    /* El visor usa la variante grande (-g, cuadrada de 1100 px): a 520 CSS px
-       de ancho hace falta el doble de píxeles en pantallas retina. */
+    /* El visor usa la variante grande (-g, cuadrada de hasta 1600 px): a 520 CSS px
+       de ancho hace falta el doble (o el triple, en DPR3) de píxeles en pantallas retina. */
     const grande = caras.map((i) => `
         <picture class="pdp-foto${i === 1 ? ' is-on' : ''}" data-cara="${i}">
           <source type="image/avif" srcset="${src(i, 'g', 'avif')}">
@@ -606,7 +606,7 @@ ${JSON.stringify({
     for (const p of CAT.productos) {
       for (let i = 1; i <= p.f; i++) {
         const f = path.join(raiz, 'assets', 'catalogo', `${p.img}-${i}-g.webp`);
-        try { ladoG[`${p.img}-${i}`] = (await sharp(f).metadata()).width; } catch { /* usa 1100 */ }
+        try { ladoG[`${p.img}-${i}`] = (await sharp(f).metadata()).width; } catch { /* usa 1600 */ }
       }
     }
 

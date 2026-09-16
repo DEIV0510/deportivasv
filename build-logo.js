@@ -80,7 +80,7 @@ async function caja(buf) {
     for (const w of anchos) {
       const f = path.join(OUT, `${nombre}-${w}.png`);
       await (await tinte(buf)).resize({ width: w })
-        .png({ compressionLevel: 9, palette: true, colors: 64 }).toFile(f);
+        .png({ compressionLevel: 9, palette: true, colors: 256 }).toFile(f);
       console.log(path.basename(f), fs.statSync(f).size + 'B');
     }
   }
@@ -96,7 +96,7 @@ async function caja(buf) {
       { input: await sharp(FOTO_HERO).resize({ height: 630 }).toBuffer(), gravity: 'east' },
       { input: await (await aBlancoConAlfa(lockup)).resize({ width: 620 }).png().toBuffer(), top: 200, left: 70 }
     ])
-    .jpeg({ quality: 84 }).toFile(path.join(OUT, 'og-tiendadeportivasv.jpg'));
+    .jpeg({ quality: 95, mozjpeg: true }).toFile(path.join(OUT, 'og-tiendadeportivasv.jpg'));
 
   // 6. Pósters de los videos (no hay ffmpeg para sacar fotogramas reales)
   const pm = await (await aBlancoConAlfa(marca)).resize({ width: 230 }).png().toBuffer();
@@ -113,7 +113,7 @@ async function caja(buf) {
 <text x='270' y='640' text-anchor='middle' font-family='Arial Black, Arial' font-size='42' font-weight='900' fill='#ffffff' letter-spacing='2'>${t1}</text>
 <text x='270' y='680' text-anchor='middle' font-family='Arial' font-size='17' fill='#9a9aa2' letter-spacing='3'>${t2}</text></svg>`);
     await sharp(svg).composite([{ input: pm, top: 250, left: 155 }])
-      .webp({ quality: 80 }).toFile(path.join(OUT, `poster-${n}.webp`));
+      .webp({ quality: 92, effort: 6 }).toFile(path.join(OUT, `poster-${n}.webp`));
   }
 
   console.log(`origen ${lm.width}x${lm.height} · corte monograma en y=${corte} · listo`);
