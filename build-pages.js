@@ -159,13 +159,34 @@ const catalogo = `<section class="page-head">
 
 ${cta('¿NO VES TU EQUIPO?', 'Conseguimos referencias bajo pedido. Dinos equipo y temporada.', 'Hola, busco una referencia que no vi en el catálogo. ¿La pueden conseguir?')}`;
 
-/* ================= BAJO PEDIDO ================= */
-const bajoPedido = `<section class="page-head">
+/* ================= BAJO PEDIDO (por categoría: retro / shorts) =================
+   Misma estructura para las dos: solo cambian las palabras (camiseta/pantaloneta),
+   los data-cuenta y el data-cat que filtra los tgrid en app.js. */
+function bajoPedidoPorCategoria(cat) {
+  const cfg = cat === 'shorts' ? {
+    kicker: 'SHORTS · BAJO PEDIDO',
+    leadIntro: 'Pantalonetas versión jugador por equipo y temporada',
+    prenda: 'pantaloneta', prendas: 'pantalonetas',
+    cCuenta: 'shorts', cEquipos: 'equipos-shorts',
+    tituloSecciones: 'SHORTS',
+    ctaTexto: 'Pídenos cualquier pantaloneta y temporada. Si se consigue, la conseguimos.',
+    ctaMensaje: 'Hola, quiero encargar una pantaloneta de un equipo que no está en la lista.'
+  } : {
+    kicker: 'RETRO · BAJO PEDIDO',
+    leadIntro: 'Camisetas clásicas por equipo y temporada',
+    prenda: 'camiseta', prendas: 'camisetas',
+    cCuenta: 'retro', cEquipos: 'equipos-retro',
+    tituloSecciones: 'RETRO',
+    ctaTexto: 'Pídenos cualquier equipo y temporada. Si se consigue, lo conseguimos.',
+    ctaMensaje: 'Hola, quiero encargar una camiseta de un equipo que no está en la lista.'
+  };
+
+  return `<section class="page-head">
   <div class="wrap">
-    <p class="kicker">RETRO · BAJO PEDIDO</p>
+    <p class="kicker">${cfg.kicker}</p>
     <h1>BAJO PEDIDO</h1>
-    <p class="lead">Camisetas clásicas por equipo y temporada: <b data-cuenta="productos">…</b> modelos
-      de <b data-cuenta="equipos">…</b> equipos. Escoge el tuyo y se despliegan sus camisetas.</p>
+    <p class="lead">${cfg.leadIntro}: <b data-cuenta="${cfg.cCuenta}">…</b> modelos
+      de <b data-cuenta="${cfg.cEquipos}">…</b> equipos. Escoge el tuyo y se despliegan sus ${cfg.prendas}.</p>
   </div>
 </section>
 
@@ -186,7 +207,7 @@ const bajoPedido = `<section class="page-head">
       </article>
       <article class="step reveal">
         <h3>Haces el pedido</h3>
-        <p>Encargamos tu camiseta y te avisamos apenas llegue.</p>
+        <p>Encargamos tu ${cfg.prenda} y te avisamos apenas llegue.</p>
       </article>
     </div>
   </div>
@@ -196,10 +217,10 @@ const bajoPedido = `<section class="page-head">
   <div class="wrap">
     <header class="sec-hd reveal">
       <p class="kicker">ESCOGE UN EQUIPO</p>
-      <h2>SELECCIONES RETRO</h2>
-      <p class="lead" style="margin-top:12px;max-width:56ch">Toca un equipo y se despliegan sus camisetas.</p>
+      <h2>SELECCIONES ${cfg.tituloSecciones}</h2>
+      <p class="lead" style="margin-top:12px;max-width:56ch">Toca un equipo y se despliegan sus ${cfg.prendas}.</p>
     </header>
-    <div class="tgrid" data-equipos="seleccion"></div>
+    <div class="tgrid" data-equipos="seleccion" data-cat="${cat}"></div>
   </div>
 </section>
 
@@ -207,14 +228,18 @@ const bajoPedido = `<section class="page-head">
   <div class="wrap">
     <header class="sec-hd reveal">
       <p class="kicker">ESCOGE UN EQUIPO</p>
-      <h2>CLUBES RETRO</h2>
-      <p class="lead" style="margin-top:12px;max-width:56ch">Toca un equipo y se despliegan sus camisetas.</p>
+      <h2>CLUBES ${cfg.tituloSecciones}</h2>
+      <p class="lead" style="margin-top:12px;max-width:56ch">Toca un equipo y se despliegan sus ${cfg.prendas}.</p>
     </header>
-    <div class="tgrid" data-equipos="club"></div>
+    <div class="tgrid" data-equipos="club" data-cat="${cat}"></div>
   </div>
 </section>
 
-${cta('¿TU EQUIPO NO ESTÁ<br>EN LA LISTA?', 'Pídenos cualquier equipo y temporada. Si se consigue, lo conseguimos.', 'Hola, quiero encargar una camiseta de un equipo que no está en la lista.')}`;
+${cta('¿TU EQUIPO NO ESTÁ<br>EN LA LISTA?', cfg.ctaTexto, cfg.ctaMensaje)}`;
+}
+
+const bajoPedido = bajoPedidoPorCategoria('retro');
+const shorts = bajoPedidoPorCategoria('shorts');
 
 /* ================= GUÍA DE TALLAS ================= */
 const tallas = `<section class="page-head">
@@ -352,6 +377,10 @@ const paginas = [
   { archivo: 'bajo-pedido.html', actual: 'bajo-pedido.html', main: bajoPedido,
     titulo: 'Bajo pedido | Camisetas retro por equipo · TiendaDeportivaSV',
     descripcion: 'Camisetas retro bajo pedido por equipo y temporada: selecciones y clubes europeos y sudamericanos. Escoge tu equipo y se despliegan sus camisetas.' },
+
+  { archivo: 'shorts.html', actual: 'shorts.html', main: shorts,
+    titulo: 'Shorts | Pantalonetas de fútbol versión jugador por equipo · TiendaDeportivaSV',
+    descripcion: 'Pantalonetas de fútbol versión jugador por equipo y temporada: selecciones y clubes europeos y sudamericanos. Escoge tu equipo y se despliegan sus pantalonetas.' },
 
   { archivo: 'tallas.html', actual: 'tallas.html', main: tallas,
     titulo: 'Guía de tallas | Camisetas de fútbol · TiendaDeportivaSV',
@@ -626,8 +655,8 @@ ${JSON.stringify({
   /* Sitemap con las 5 páginas + todas las fichas */
   const urls = [
     ['', 'weekly', '1.0'], ['catalogo.html', 'weekly', '0.9'],
-    ['bajo-pedido.html', 'monthly', '0.8'], ['tallas.html', 'yearly', '0.5'],
-    ['rastrear.html', 'yearly', '0.4']
+    ['bajo-pedido.html', 'monthly', '0.8'], ['shorts.html', 'monthly', '0.8'],
+    ['tallas.html', 'yearly', '0.5'], ['rastrear.html', 'yearly', '0.4']
   ].map(([u, f, pr]) => `  <url><loc>https://tiendadeportivasv.com/${u}</loc><changefreq>${f}</changefreq><priority>${pr}</priority></url>`)
     .concat(CAT.productos.map((p) =>
       `  <url><loc>https://tiendadeportivasv.com/p/${p.id}.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`));

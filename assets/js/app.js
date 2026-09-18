@@ -56,9 +56,16 @@
     $$('.yr').forEach(function (el) { el.textContent = new Date().getFullYear(); });
 
     /* ---------- Cifras reales del catálogo ---------- */
+    function equiposCon(cat) {
+      return CAT.equipos.filter(function (e) {
+        return CAT.productos.some(function (p) { return p.eq === e.id && p.cat === cat; });
+      }).length;
+    }
     $$('[data-cuenta]').forEach(function (el) {
       var q = el.dataset.cuenta;
       el.textContent = q === 'equipos' ? CAT.equipos.length
+        : q === 'equipos-retro' ? equiposCon('retro')
+        : q === 'equipos-shorts' ? equiposCon('shorts')
         : q === 'retro' ? CAT.productos.filter(function (p) { return p.cat === 'retro'; }).length
         : q === 'shorts' ? CAT.productos.filter(function (p) { return p.cat === 'shorts'; }).length
         : CAT.productos.length;
@@ -177,8 +184,8 @@
 
     /* ================= GRILLAS DE EQUIPOS ================= */
 
-    function modelosDe(e) {
-      return CAT.productos.filter(function (p) { return p.eq === e.id; });
+    function modelosDe(e, cat) {
+      return CAT.productos.filter(function (p) { return p.eq === e.id && (!cat || p.cat === cat); });
     }
 
     // Escudo real si el equipo lo tiene (ESCUDOS, generado por build-escudos.js);
@@ -197,8 +204,8 @@
         '</picture>';
     }
 
-    function tarjetaEquipo(e, i) {
-      var n = modelosDe(e).length;
+    function tarjetaEquipo(e, i, cat) {
+      var n = modelosDe(e, cat).length;
       var marca = tieneEscudo(e.id)
         ? '<span class="tcard-escudo">' + escudoImg(e.id, e.n, 64) + '</span>'
         : '<span class="tcard-mark" aria-hidden="true">' + esc(e.s) + '</span>';
@@ -211,8 +218,8 @@
              '<span class="tcard-go" aria-hidden="true">+</span></button>';
     }
 
-    function panelEquipo(e) {
-      var modelos = modelosDe(e);
+    function panelEquipo(e, cat) {
+      var modelos = modelosDe(e, cat);
       var pedirGenerico = WA + encodeURIComponent(
         'Hola, quiero una camiseta de ' + e.n + '. ¿Qué temporadas pueden conseguir?'
       );
@@ -246,7 +253,7 @@
           '</form>' +
           '<div class="panel-pie">' +
             (modelos.length > 4
-              ? '<a class="link-more" href="catalogo.html?eq=' + e.id + '">Ver los ' + modelos.length + ' de ' + esc(e.n) + ' →</a>'
+              ? '<a class="link-more" href="catalogo.html?eq=' + e.id + (cat ? '&cat=' + cat : '') + '">Ver los ' + modelos.length + ' de ' + esc(e.n) + ' →</a>'
               : '') +
             '<a class="panel-alt" href="' + pedirGenerico + '" target="_blank" rel="noopener">O escríbenos sin especificar temporada →</a>' +
           '</div>' +
@@ -258,8 +265,8 @@
       return t ? t.split(' ').filter(Boolean).length : 1;
     }
 
-    function montarGrilla(box, lista) {
-      box.innerHTML = lista.map(tarjetaEquipo).join('');
+    function montarGrilla(box, lista, cat) {
+      box.innerHTML = lista.map(function (e, i) { return tarjetaEquipo(e, i, cat); }).join('');
       var tarjetas = $$('.tcard', box);
       var abierto = null;
       var cols0 = columnas(box);
@@ -281,7 +288,7 @@
 
         var panel = document.createElement('div');
         panel.className = 'tpanel-slot';
-        panel.innerHTML = panelEquipo(lista[i]);
+        panel.innerHTML = panelEquipo(lista[i], cat);
 
         // Inserta el panel al final de la fila donde está la tarjeta,
         // para que se despliegue debajo sin partir la cuadrícula.
@@ -333,15 +340,19 @@
 
     $$('[data-equipos]').forEach(function (box) {
       var tipo = box.dataset.equipos;
+      var cat = box.dataset.cat || null;
       var lista = CAT.equipos.filter(function (e) {
-        return tipo === 'todos' || e.tipo === tipo;
+        // Sin categoría, un equipo con 0 modelos igual se muestra ("bajo pedido").
+        // Con categoría (portada de Retro/Shorts) se oculta: no tiene sentido
+        // ofrecer un equipo que no tiene nada publicado en esa categoría.
+        return (tipo === 'todos' || e.tipo === tipo) && (!cat || modelosDe(e, cat).length > 0);
       });
       var tope = parseInt(box.dataset.limite, 10);
       if (tope > 0) {
-        lista = lista.slice().sort(function (a, b) { return modelosDe(b).length - modelosDe(a).length; }).slice(0, tope);
+        lista = lista.slice().sort(function (a, b) { return modelosDe(b, cat).length - modelosDe(a, cat).length; }).slice(0, tope);
         lista.sort(function (a, b) { return a.n.localeCompare(b.n, 'es'); });
       }
-      montarGrilla(box, lista);
+      montarGrilla(box, lista, cat);
     });
 
     /* ================= CATÁLOGO ================= */
@@ -445,10 +456,15 @@
         });
       }
 
-      // Búsqueda o equipo que llegan por la URL: catalogo.html?q=…&eq=…
+      // Búsqueda, equipo o categoría que llegan por la URL: catalogo.html?q=…&eq=…&cat=…
       var params = new URLSearchParams(location.search);
       if (params.get('q') && buscador) buscador.value = params.get('q');
       if (params.get('eq') && selEquipo) selEquipo.value = params.get('eq');
+      var catUrl = params.get('cat');
+      if (catUrl && chips.some(function (c) { return c.dataset.filter === catUrl; })) {
+        filtro = catUrl;
+        chips.forEach(function (c) { c.classList.toggle('is-on', c.dataset.filter === catUrl); });
+      }
       refrescar();
     }
 

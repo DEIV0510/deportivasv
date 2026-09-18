@@ -317,6 +317,37 @@ h3{font-size:16px;font-weight:700;letter-spacing:-.005em;line-height:1.3;color:v
 .tcard:hover .tcard-go,.tcard:focus-visible .tcard-go{opacity:1;transform:none}
 .tcard.is-open .tcard-go{opacity:1;transform:rotate(45deg)}
 
+/* ---------- Categorías (portada) ---------- */
+.cgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media (min-width:640px){ .cgrid{gap:20px;max-width:640px} }
+
+.ccard{
+  position:relative;display:block;border-radius:var(--r);overflow:hidden;
+  aspect-ratio:3/4;background:var(--bg-2);box-shadow:var(--shadow);
+  transition:transform .25s var(--ease),box-shadow .25s var(--ease);
+}
+.ccard:hover{transform:translateY(-4px);box-shadow:var(--shadow-h)}
+.ccard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ccard::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,0) 50%,rgba(0,0,0,.82) 100%);
+}
+.ccard-bd{
+  position:absolute;left:0;right:0;bottom:0;z-index:1;padding:16px 18px;color:#fff;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:10px;
+}
+.ccard-bd b{
+  display:block;font-family:"Archivo Black","Arial Black",Impact,sans-serif;font-weight:400;
+  font-size:clamp(20px,3.4vw,28px);letter-spacing:-.01em;line-height:1;
+}
+.ccard-bd i{font-style:normal;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.85;margin-top:6px;display:block}
+.ccard-go{
+  flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;
+  background:#fff;color:var(--ink);font-size:15px;line-height:1;
+  transition:transform .25s var(--ease);
+}
+.ccard:hover .ccard-go{transform:translateX(3px)}
+
 /* ---------- Panel desplegable del equipo ---------- */
 .tpanel-slot{
   grid-column:1/-1;
